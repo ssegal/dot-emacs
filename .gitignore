@@ -1,0 +1,14 @@
+*.elc
+*~
+\#*\#
+.\#*
+/auto-save-list/
+/elpa/
+/projectile-bookmarks.eld
+/projectile.cache
+/tramp
+/custom.el
+/server/
+/snippets/
+/init-local.el
+/recentf
