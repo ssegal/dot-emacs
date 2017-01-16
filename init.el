@@ -69,19 +69,8 @@
   :demand t
   :init (load-theme 'sanityinc-tomorrow-night t))
 
-
-;; Handle transparency
-;; (defun on-frame-open (frame)
-;;  (when (display-graphic-p frame)
-;;    (set-frame-parameter frame 'alpha 95)))
-;; (add-hook 'after-make-frame-functions 'on-frame-open)
-
-;; For initial frame if there is one
-;; (when (selected-frame)
-;;   (on-frame-open (selected-frame)))
-
 ;; xterm mouse reporting
-(xterm-mouse-mode t)
+(xterm-mouse-mode 1)
 
 ;; Delete selection with backspace or delete.
 (delete-selection-mode 1)
@@ -237,7 +226,7 @@
   :config (progn
             (unless (member 'company-capf company-backends)
               (add-to-list 'company-backends 'company-capf))
-            (global-company-mode t))
+            (global-company-mode 1))
   :init (setq company-tooltip-align-annotations t))
 
 (use-package company-web
@@ -261,7 +250,7 @@
   :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))
 
 (add-hook 'prog-mode-hook (lambda ()
-                            (linum-mode t)
+                            (linum-mode 1)
                             (setq show-trailing-whitespace t)))
 
 ;; (add-hook 'makefile-mode-hook (lambda ()
@@ -273,7 +262,7 @@
   :init (progn
           (setq projectile-use-git-grep t)
           (setq projectile-enable-caching t))
-  :config (projectile-mode t))
+  :config (projectile-mode 1))
 
 ;;;; Helm
 (use-package helm-config
@@ -387,7 +376,7 @@
 
 (windmove-default-keybindings 'meta)
 (use-package frame-tag
-  :config (frame-tag-mode t))
+  :config (frame-tag-mode 1))
 
 (use-package framemove
   :init (setq framemove-hook-into-windmove t))
@@ -457,7 +446,9 @@
   (use-package osx-pseudo-daemon
     :ensure nil))
 
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
+
 ;;;; LOCAL SETUP
 (load (concat user-emacs-directory "init-local.el") 'noerror)
 
-(put 'downcase-region 'disabled nil)
