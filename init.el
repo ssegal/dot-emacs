@@ -1,18 +1,10 @@
-;; init.el - Emacs initialization
-;;
-;; Copyright (C) 2012-2016 Stephen Segal
-;;
-;; Author: Stephen Segal <ssegal127@gmail.com>
-;;
-;; I've copied many parts of this from other places on the internet.
-
 ;; Prefer newer files.  This is first so that it affects all
 ;; subsequent loads.
 (setq load-prefer-newer t)
 
 ;; Add a local path for non-package.el themes.
 (when (boundp 'custom-theme-load-path)
-  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes"))
+  (add-to-list 'custom-theme-load-path (expand-file-name "themes"  user-emacs-directory)))
 
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
@@ -20,15 +12,21 @@
 
 ;; Move customizer stuff to another file so it doesn't clog up this
 ;; one.
-(setq custom-file "~/.emacs.d/custom.el")
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file 'noerror)
 
+;; Backups, go hide!
+(defconst my/backup-directory (expand-file-name "backups" user-emacs-directory))
+(unless (file-directory-p my/backup-directory)
+  (make-directory my/backup-directory))
+(setq backup-directory-alist `((".*" . ,(expand-file-name "backups" user-emacs-directory))))
+
 ;; Make my own local lisp directory
-(setq my/lisp-directory (concat user-emacs-directory "lisp"))
+(defconst my/lisp-directory (expand-file-name "lisp" user-emacs-directory))
 (unless (file-directory-p my/lisp-directory)
   (make-directory my/lisp-directory))
 (add-to-list 'load-path my/lisp-directory)
-(add-to-list 'load-path (concat (file-name-as-directory my/lisp-directory) "osx-pseudo-daemon"))
+(add-to-list 'load-path (expand-file-name "osx-pseudo-daemon" my/lisp-directory))
 
 ;; package.el
 (require 'package)
@@ -450,5 +448,5 @@
 (put 'upcase-region 'disabled nil)
 
 ;;;; LOCAL SETUP
-(load (concat user-emacs-directory "init-local.el") 'noerror)
+(load (expand-file-name "init-local.el" user-emacs-directory) 'noerror)
 
