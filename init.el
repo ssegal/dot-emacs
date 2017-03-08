@@ -393,6 +393,8 @@
 (when (and (file-directory-p "/usr/local/bin") (not (member "/usr/local/bin" exec-path)))
   (add-to-list 'exec-path "/usr/local/bin"))
 
+(setq hexl-bits 8)
+
 (defun toggle-window-split ()
   (interactive)
   (if (= (count-windows) 2)
