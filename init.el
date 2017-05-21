@@ -265,6 +265,7 @@
 ;;;; Helm
 (use-package helm-config
   :init (setq helm-command-prefix-key "C-c h")
+  :disabled t
   :ensure helm
   :demand t
   :bind (("C-x b" . helm-mini)
@@ -294,13 +295,43 @@
 (use-package helm-git-grep
   :disabled t
   :if (featurep 'helm)
-  :bind ("C-c h n" . helm-git-grep))
+  :bind (("C-c h n" . helm-git-grep)
+         ("C-c j" . helm-git-grep))
 
 (use-package helm-projectile
   :if (and (featurep 'projectile) (featurep 'helm))
   :config (progn
             (setq projectile-completion-system 'helm)
             (helm-projectile-on)))
+
+;;;; IVY
+(use-package ivy
+  :init
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+  :config
+  (ivy-mode 1))
+
+(use-package swiper
+  :commands swiper
+  :if (featurep 'ivy)
+  :bind ("C-s" . swiper))
+
+(use-package counsel
+  :if (featurep 'ivy)
+  :config
+  (counsel-mode 1)
+  :bind
+  (("C-c g" . counsel-git)
+   ("C-c f" . counsel-grep)
+   ("C-c j" . counsel-git-grep)
+   ("C-c k" . counsel-ag)))
+
+(use-package counsel-projectile
+  :if (and (featurep 'projectile) (featurep 'counsel))
+  :config
+  (setq projectile-completion-system 'ivy)
+  (counsel-projectile-on))
 
 ;;;; GIT-GUTTER
 (use-package git-gutter
@@ -325,11 +356,12 @@
   (bind-key "M-RET" 'toggle-frame-fullscreen))
 
 (cua-mode 1)
-
-(bind-key "C-c d" 'vc-git-grep)
-(bind-key "C-c f" 'grep)
+(unless ((featurep 'counsel) (featurep 'helm-git-grep))
+  (bind-key "C-c d" 'vc-git-grep)
+(unless (featurep 'counsel)
+  (bind-key "C-c f" 'grep)
 (bind-key "C-c C-f" 'imenu)
-(unless (featurep 'helm)
+(unless (or (featurep 'helm) (featurep 'counsel))
   (bind-key "C-x C-r" 'recentf-open-files))
 (bind-key "C-x r q" 'save-buffers-kill-emacs)
 (bind-key "C-c r" 'revert-buffer)
