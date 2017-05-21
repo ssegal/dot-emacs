@@ -296,7 +296,7 @@
   :disabled t
   :if (featurep 'helm)
   :bind (("C-c h n" . helm-git-grep)
-         ("C-c j" . helm-git-grep))
+         ("C-c j" . helm-git-grep)))
 
 (use-package helm-projectile
   :if (and (featurep 'projectile) (featurep 'helm))
@@ -356,10 +356,10 @@
   (bind-key "M-RET" 'toggle-frame-fullscreen))
 
 (cua-mode 1)
-(unless ((featurep 'counsel) (featurep 'helm-git-grep))
-  (bind-key "C-c d" 'vc-git-grep)
+(unless (or (featurep 'counsel) (featurep 'helm-git-grep))
+  (bind-key "C-c d" 'vc-git-grep))
 (unless (featurep 'counsel)
-  (bind-key "C-c f" 'grep)
+  (bind-key "C-c f" 'grep))
 (bind-key "C-c C-f" 'imenu)
 (unless (or (featurep 'helm) (featurep 'counsel))
   (bind-key "C-x C-r" 'recentf-open-files))
