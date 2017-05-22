@@ -88,10 +88,10 @@
 
 
 (use-package with-editor
-  :config (progn
-            (add-hook 'shell-mode-hook  'with-editor-export-editor)
-            (add-hook 'term-exec-hook   'with-editor-export-editor)
-            (add-hook 'eshell-mode-hook 'with-editor-export-editor)))
+  :config
+  (add-hook 'shell-mode-hook  'with-editor-export-editor)
+  (add-hook 'term-exec-hook   'with-editor-export-editor)
+  (add-hook 'eshell-mode-hook 'with-editor-export-editor))
 
 (use-package magit-autoloads
   :ensure magit
@@ -190,9 +190,8 @@
 ;;;; TRAMP
 (use-package tramp
   :config
-    (progn
-       (setq tramp-default-method "scp")
-       (add-to-list 'tramp-remote-path "/home/ssegal/bin")))
+  (setq tramp-default-method "scp")
+  (add-to-list 'tramp-remote-path "/home/ssegal/bin"))
 
 (defun hostname (host)
   (car (split-string host "\\.")))
@@ -201,11 +200,11 @@
 
 (use-package org
   :init (setq org-replace-disputed-keys t)
-  :config (progn
-            (setq org-log-done t)
-            (setq org-agenda-files (list "~/Dropbox/org"))
-            (setq org-time-stamp-custom-formats '("<%m/%d/%Y %a>" . "<%m/%d/%Y %a %I:%M %p>"))
-            (setq-default org-display-custom-times t))
+  :config
+  (setq org-log-done t)
+  (setq org-agenda-files (list "~/Dropbox/org"))
+  (setq org-time-stamp-custom-formats '("<%m/%d/%Y %a>" . "<%m/%d/%Y %a %I:%M %p>"))
+  (setq-default org-display-custom-times t)
   :bind (("C-c l" . org-store-link)
          ("C-c a" . org-agenda)))
 
@@ -221,10 +220,10 @@
 
 (use-package company
   :demand t
-  :config (progn
-            (unless (member 'company-capf company-backends)
-              (add-to-list 'company-backends 'company-capf))
-            (global-company-mode 1))
+  :config
+  (unless (member 'company-capf company-backends)
+    (add-to-list 'company-backends 'company-capf))
+  (global-company-mode 1)
   :init (setq company-tooltip-align-annotations t))
 
 (use-package company-web
@@ -234,17 +233,17 @@
 
 (use-package robe
   :commands robe-mode
-  :init (progn
-          (add-hook 'enh-ruby-mode-hook 'robe-mode)
-          (when (featurep 'company)
-            (add-to-list 'company-backends 'company-robe))))
+  :init
+  (add-hook 'enh-ruby-mode-hook 'robe-mode)
+  (when (featurep 'company)
+    (add-to-list 'company-backends 'company-robe)))
 
 (use-package racer
   :commands racer-mode
   :if (and (fboundp 'rust-mode) (featurep 'company))
-  :init (progn
-          (add-hook 'rust-mode-hook #'racer-mode)
-          (add-hook 'racer-mode-hool #'eldoc-mode))
+  :init
+  (add-hook 'rust-mode-hook #'racer-mode)
+  (add-hook 'racer-mode-hool #'eldoc-mode)
   :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))
 
 (add-hook 'prog-mode-hook (lambda ()
@@ -257,14 +256,14 @@
 ;;;; PROJECTILE
 (use-package projectile
   :demand t
-  :init (progn
-          (setq projectile-use-git-grep t)
-          (setq projectile-enable-caching t))
+  :init
+  (setq projectile-use-git-grep t)
+  (setq projectile-enable-caching t)
   :config (projectile-mode 1))
 
 ;;;; Helm
 (use-package helm-config
-  :init (setq helm-command-prefix-key "C-c h")
+  :init(setq helm-command-prefix-key "C-c h")
   :disabled t
   :ensure helm
   :demand t
@@ -287,10 +286,9 @@
          ("n" . helm-grep-mode-jump-other-window-forward)
          ("p" . helm-grep-mode-jump-other-window-backward))
   :config
-    (progn
-      (helm-mode 1)
-      (setq helm-M-x-fuzzy-match t)
-      (setq-default helm-ff-file-name-history-use-recentf t)))
+  (helm-mode 1)
+  (setq helm-M-x-fuzzy-match t)
+  (setq-default helm-ff-file-name-history-use-recentf t))
 
 (use-package helm-git-grep
   :disabled t
@@ -300,9 +298,9 @@
 
 (use-package helm-projectile
   :if (and (featurep 'projectile) (featurep 'helm))
-  :config (progn
-            (setq projectile-completion-system 'helm)
-            (helm-projectile-on)))
+  :config
+  (setq projectile-completion-system 'helm)
+  (helm-projectile-on))
 
 ;;;; IVY
 (use-package ivy
