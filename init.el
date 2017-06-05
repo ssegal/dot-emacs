@@ -21,6 +21,13 @@
   (make-directory my/backup-directory))
 (setq backup-directory-alist `((".*" . ,(expand-file-name "backups" user-emacs-directory))))
 
+;; Auto-saves, go hide too!
+(defconst my/auto-save-directory (expand-file-name "autosaves" user-emacs-directory))
+(unless (file-directory-p my/auto-save-directory)
+  (make-directory my/auto-save-directory))
+(setq auto-save-file-name-transforms
+      `((".*" ,my/auto-save-directory t)))
+
 ;; Make my own local lisp directory
 (defconst my/lisp-directory (expand-file-name "lisp" user-emacs-directory))
 (unless (file-directory-p my/lisp-directory)
@@ -55,12 +62,30 @@
 ;; with ":ensure nil"
 (setq use-package-always-ensure t)
 
+;; Use ibuffer
+(bind-key "C-x C-b" 'ibuffer)
+
+;;;; EXTRA KEYMAPPINGS (default)
+(when (eq system-type 'darwin)
+  (bind-key [home] 'beginning-of-line)
+  (bind-key [end] 'end-of-line)
+  (bind-key "M-RET" 'toggle-frame-fullscreen))
+
+(cua-mode 1)
+(bind-key "C-c d" 'vc-git-grep)
+(bind-key "C-c f" 'grep)
+(bind-key "C-c C-f" 'imenu)
+(bind-key "C-x r q" 'save-buffers-kill-emacs)
+(bind-key "C-c r" 'revert-buffer)
+
 ;; recentf-mode
 (use-package recentf
+  :demand t
   :init
   (setq recentf-exclude '("/elpa/" '".recentf" '"COMMIT_EDITMSG"))
   :config
-  (recentf-mode 1))
+  (recentf-mode 1)
+  :bind ("C-x C-r" . recentf-open-files))
 
 ;; Set theme
 (use-package color-theme-sanityinc-tomorrow
@@ -80,9 +105,6 @@
 (set-default-coding-systems 'utf-8)
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
-
-;; Use ibuffer
-(bind-key "C-x C-b" 'ibuffer)
 
 ;;;; GIT STUFF
 
@@ -221,8 +243,6 @@
 (use-package company
   :demand t
   :config
-  (unless (member 'company-capf company-backends)
-    (add-to-list 'company-backends 'company-capf))
   (global-company-mode 1)
   :init (setq company-tooltip-align-annotations t))
 
@@ -245,6 +265,16 @@
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hool #'eldoc-mode)
   :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))
+
+(use-package rtags
+  :config
+  (setq rtags-autostart-diagnostics t)
+  (setq rtags-completion-enabled t))
+
+(use-package company-rtags
+  :if (and (featurep 'company) (featurep 'rtags))
+  :init (add-to-list 'company-backends 'company-rtags))
+  
 
 (add-hook 'prog-mode-hook (lambda ()
                             (linum-mode 1)
@@ -347,24 +377,6 @@
          ("C-c C-<" . mc/mark-all-like-this)
          ("C-S-c C-S-c" . mc/edit-lines)))
 
-;;;; OTHER KEYMAPPINGS
-(when (eq system-type 'darwin)
-  (bind-key [home] 'beginning-of-line)
-  (bind-key [end] 'end-of-line)
-  (bind-key "M-RET" 'toggle-frame-fullscreen))
-
-(cua-mode 1)
-(unless (or (featurep 'counsel) (featurep 'helm-git-grep))
-  (bind-key "C-c d" 'vc-git-grep))
-(unless (featurep 'counsel)
-  (bind-key "C-c f" 'grep))
-(bind-key "C-c C-f" 'imenu)
-(unless (or (featurep 'helm) (featurep 'counsel))
-  (bind-key "C-x C-r" 'recentf-open-files))
-(bind-key "C-x r q" 'save-buffers-kill-emacs)
-(bind-key "C-c r" 'revert-buffer)
-
-
 ;;;; SERVER
 (defun mac-config-remote-emacsclient ()
   (when server-process
@@ -424,6 +436,9 @@
   (add-to-list 'exec-path "/usr/local/bin"))
 
 (setq hexl-bits 8)
+
+;; Force bash as shell (overriding any local path)
+(setq shell-file-name "bash")
 
 (defun toggle-window-split ()
   (interactive)
