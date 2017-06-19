@@ -37,8 +37,14 @@
 
 ;; package.el
 (require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/") t)
+(setq package-archives
+      '(("gnu" . "http://elpa.gnu.org/packages/")
+        ("melpa-stable" . "https://stable.melpa.org/packages/")
+        ("melpa" . "https://melpa.org/packages/"))
+      package-archive-priorities
+      '(("melpa-stable" . 10)
+        ("gnu" . 5)
+        ("melpa" . 0)))
 
 ;; Initialize package.el here instead of at startup so we can have
 ;; use-package automatically install things.
@@ -264,17 +270,7 @@
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hool #'eldoc-mode)
-  :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))
-
-(use-package rtags
-  :config
-  (setq rtags-autostart-diagnostics t)
-  (setq rtags-completion-enabled t))
-
-(use-package company-rtags
-  :if (and (featurep 'company) (featurep 'rtags))
-  :init (add-to-list 'company-backends 'company-rtags))
-  
+  :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))  
 
 (add-hook 'prog-mode-hook (lambda ()
                             (linum-mode 1)
