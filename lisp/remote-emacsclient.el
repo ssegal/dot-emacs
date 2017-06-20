@@ -113,10 +113,10 @@ connection of the current buffer."
                        default-directory))))
       (file-error (message "error saving remote emacsclient auth: %s" err)))))
 
-(defadvice tramp-open-connection-setup-interactive-shell
-  (after copy-server-file-by-tramp (proc vec) activate)
-  "Automatically write out a remote emacsclient auth file after a
-successful connection."
-  (tramp-save-remote-emacsclient-auth-file vec))
+(advice-add 'tramp-open-connection-setup-interactive-shell :after
+            (lambda (proc vec)
+              (when (string-match-p "^*tramp.**" (process-name proc))
+                (tramp-save-remote-emacsclient-auth-file vec)))
+            '((name copy-server-file-by-name)))
 
 (provide 'remote-emacsclient)
