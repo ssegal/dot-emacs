@@ -19,7 +19,7 @@ saving an authentication file.
 The authentication file is similar to the one written out by the
 emacsclient TCP server, except it includes the prefix used for
 the TRAMP connection to the remote server."
-  :group 'tramp
+  :group 'rclient
   :type '(choice (const nil) string))
 
 (defcustom rclient-default-remote-socket-path "~/.emacs.d/remote-server-socket"
