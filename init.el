@@ -324,6 +324,7 @@
 
 (use-package helm-projectile
   :if (and (featurep 'projectile) (featurep 'helm))
+  :disabled t
   :config
   (setq projectile-completion-system 'helm)
   (helm-projectile-on))
