@@ -374,16 +374,7 @@
          ("C-S-c C-S-c" . mc/edit-lines)))
 
 ;;;; SERVER
-(defun mac-config-remote-emacsclient ()
-  (when server-process
-    (require 'remote-emacsclient)
-    (update-tramp-emacs-server-port-forward tramp-default-method)))
-
-;; We only do this on macOS simply because all my TRAMP clients are
-;; macOS.
-(when (eq system-type 'darwin)
-  (setq server-use-tcp t)
-  (add-hook 'emacs-startup-hook 'mac-config-remote-emacsclient))
+(require 'rclient)
 
 ;;;; LINUM MODE
 (defvar my/linum-format-fmt)
