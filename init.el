@@ -279,6 +279,8 @@
 ;; (add-hook 'makefile-mode-hook (lambda ()
 ;;                                (setq insert-tabs-mode t)))
 
+(use-package rainbow-delimiters)
+
 ;;;; PROJECTILE
 (use-package projectile
   :demand t
