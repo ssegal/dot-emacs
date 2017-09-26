@@ -145,24 +145,28 @@ connection vector."
     (rclient--save-remote-auth-file vec)
     (let* ((default-directory temporary-file-directory)
            (server-socket (process-contact server-process :local))
+           (remote-socket (rclient--canonicalize-remote-path
+                           vec (rclient-get-remote-socket-path vec)))
+           (port (process-contact server-process :service))
            (cmd (if (stringp server-socket)
-                    (format "ssh -O forward %s -R%s:%s %s%s"
-                            (format (tramp-ssh-controlmaster-options vec))
-                            (rclient--canonicalize-remote-path vec (rclient-get-remote-socket-path vec))
-                            server-socket
-                            (if (tramp-file-name-user vec)
-                                (concat (tramp-file-name-user vec) "@")
-                              "")
-                            (tramp-file-name-host vec))
+                    (progn
+                      (delete-file (rclient--make-tramp-file-name-from-vec vec remote-socket))
+                      (format "ssh -O forward %s -R%s:%s %s%s"
+                              (format (tramp-ssh-controlmaster-options vec))
+                              remote-socket
+                              server-socket
+                              (if (tramp-file-name-user vec)
+                                  (concat (tramp-file-name-user vec) "@")
+                                "")
+                              (tramp-file-name-host vec)))
                   (format "ssh -O forward %s -R%d:127.0.0.1:%d %s%s"
                           (format (tramp-ssh-controlmaster-options vec))
-                          (process-contact server-process :service)
-                          (process-contact server-process :service)
+                          port port
                           (if (tramp-file-name-user vec)
                               (concat (tramp-file-name-user vec) "@")
                             "")
                           (tramp-file-name-host vec)))))
-      (shell-command cmd))))
+      (process-file-shell-command cmd))))
 
 (advice-add 'tramp-open-connection-setup-interactive-shell :after
             (lambda (proc vec)
