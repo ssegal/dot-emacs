@@ -287,7 +287,7 @@
   :init
   (setq projectile-use-git-grep t)
   (setq projectile-enable-caching t)
-  :config (projectile-mode 1))
+  :config (projectile-global-mode 1))
 
 ;;;; Helm
 (use-package helm-config
@@ -346,11 +346,11 @@
 
 (use-package counsel
   :if (featurep 'ivy)
+  :demand t
   :config
   (counsel-mode 1)
   :bind
-  (("C-c g" . counsel-git)
-   ("C-c f" . counsel-grep)
+  (("C-c f" . counsel-grep)
    ("C-c j" . counsel-git-grep)
    ("C-c k" . counsel-ag)))
 
@@ -428,7 +428,7 @@
 (setq hexl-bits 8)
 
 ;; Force bash as shell (overriding any local path)
-(setq shell-file-name "bash")
+;(setq shell-file-name "bash")
 
 (defun toggle-window-split ()
   (interactive)
