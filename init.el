@@ -292,48 +292,6 @@
   (setq projectile-enable-caching t)
   :config (projectile-global-mode 1))
 
-;;;; Helm
-(use-package helm-config
-  :init(setq helm-command-prefix-key "C-c h")
-  :disabled t
-  :ensure helm
-  :demand t
-  :bind (("C-x b" . helm-mini)
-         ("C-x C-r" . helm-recentf)
-         ("M-y" . helm-show-kill-ring)
-         ("C-x C-f" . helm-find-files)
-         ("C-h SPC" . helm-all-mark-rings)
-         ("C-c h o" . helm-occur)
-         ("C-c h g" . helm-do-grep)
-         ("C-c h C-c w" . helm-wikipedia-suggest)
-         ("C-c h x" . helm-register)
-         ("M-x" . helm-M-x)
-         :map helm-map
-         ("<tab>" . helm-execute-persistent-action)
-         ("C-i" . helm-execute-persistent-action)
-         ("C-z" . helm-select-action)
-         :map helm-grep-mode-map
-         ("<return>" . helm-grep-mode-jump-other-window)
-         ("n" . helm-grep-mode-jump-other-window-forward)
-         ("p" . helm-grep-mode-jump-other-window-backward))
-  :config
-  (helm-mode 1)
-  (setq helm-M-x-fuzzy-match t)
-  (setq-default helm-ff-file-name-history-use-recentf t))
-
-(use-package helm-git-grep
-  :disabled t
-  :if (featurep 'helm)
-  :bind (("C-c h n" . helm-git-grep)
-         ("C-c j" . helm-git-grep)))
-
-(use-package helm-projectile
-  :if (and (featurep 'projectile) (featurep 'helm))
-  :disabled t
-  :config
-  (setq projectile-completion-system 'helm)
-  (helm-projectile-on))
-
 ;;;; IVY
 (use-package ivy
   :init
