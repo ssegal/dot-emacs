@@ -279,8 +279,8 @@
                             (linum-mode 1)
                             (setq show-trailing-whitespace t)))
 
-;; (add-hook 'makefile-mode-hook (lambda ()
-;;                                (setq insert-tabs-mode t)))
+(use-package dts-mode
+  :pin melpa)
 
 (use-package rainbow-delimiters)
 
