@@ -386,6 +386,11 @@
 (when (and (file-directory-p "/usr/local/bin") (not (member "/usr/local/bin" exec-path)))
   (add-to-list 'exec-path "/usr/local/bin"))
 
+;; Since I use widescreen monitors everywhere, prefer
+;; horizontal split to vertical split.
+(setq split-height-threshold nil)
+(setq split-width-threshold 120)
+
 (setq hexl-bits 8)
 
 ;; Force bash as shell (overriding any local path)
