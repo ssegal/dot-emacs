@@ -276,7 +276,9 @@
   :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))  
 
 (add-hook 'prog-mode-hook (lambda ()
-                            (linum-mode 1)
+                            (if (version< emacs-version "26.0")
+                                (linum-mode 1)
+                              (display-line-numbers-mode 1))
                             (setq show-trailing-whitespace t)))
 
 (use-package dts-mode
@@ -325,7 +327,8 @@
 (use-package git-gutter
   :commands git-gutter-mode
   :config
-  (git-gutter:linum-setup))
+  (when (version< emacs-version "26.0")
+    (git-gutter:linum-setup)))
 
 ;; (when (featurep 'git-gutter)
 ;;   (global-git-gutter-mode t))
@@ -341,23 +344,24 @@
 (require 'rclient)
 
 ;;;; LINUM MODE
-(defvar my/linum-format-fmt)
-(add-hook 'linum-before-numbering-hook
-  (lambda ()
-    (setq-local my/linum-format-fmt
-      (let ((w (length (number-to-string
-			(count-lines (point-min) (point-max))))))
-	(concat "%" (number-to-string w) "d")))
-    (setq-local my/linum-format 'linum-format-func)))
+(when (version<= emacs-version "26.0")
+  (defvar my/linum-format-fmt)
+  (add-hook 'linum-before-numbering-hook
+            (lambda ()
+              (setq-local my/linum-format-fmt
+                          (let ((w (length (number-to-string
+			                    (count-lines (point-min) (point-max))))))
+	                    (concat "%" (number-to-string w) "d")))
+              (setq-local my/linum-format 'linum-format-func)))
 
-(defun linum-format-func (line)
-  (if (display-graphic-p nil)
-    (propertize (format my/linum-format-fmt line) 'face 'linum)
-    (concat
-      (propertize (format my/linum-format-fmt line) 'face 'linum)
-      (propertize " " 'face 'fringe))))
+  (defun linum-format-func (line)
+    (if (display-graphic-p nil)
+        (propertize (format my/linum-format-fmt line) 'face 'linum)
+      (concat
+       (propertize (format my/linum-format-fmt line) 'face 'linum)
+       (propertize " " 'face 'fringe))))
 
-(setq linum-format 'linum-format-func)
+  (setq linum-format 'linum-format-func))
 
 ;;;; UNIQUIFY
 (require 'uniquify)
