@@ -70,11 +70,19 @@ explanation of the socket path."
 (defun rclient--make-tramp-file-name-from-vec (vec file)
   "Convenience function for making a TRAMP path, since this
 apparently didn't already exist."
-  (tramp-make-tramp-file-name
-    (tramp-file-name-method vec)
-    (tramp-file-name-user vec)
-    (tramp-file-name-host vec)
-    file))
+  (if (version<= emacs-version "26.0")
+      (tramp-make-tramp-file-name
+       (tramp-file-name-method vec)
+       (tramp-file-name-user vec)
+       (tramp-file-name-host vec)
+       file)
+    (tramp-make-tramp-file-name
+     (tramp-file-name-method vec)
+     (tramp-file-name-user vec)
+     (tramp-file-name-domain vec)
+     (tramp-file-name-host vec)
+     (tramp-file-name-host-port vec)
+     file)))
 
 (defun rclient--canonicalize-remote-path (vec path)
   (with-current-buffer (tramp-get-buffer vec)
