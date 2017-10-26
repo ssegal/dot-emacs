@@ -446,10 +446,12 @@
        (when (find-font (font-spec :name "Consolas"))
          (set-face-attribute 'default nil :font  "Consolas-10"))))
 
-(when (eq system-type 'darwin)
-  (use-package osx-clipboard)
-  (use-package osx-pseudo-daemon
-    :ensure nil))
+(use-package osx-clipboard
+  :if (eq system-type 'darwin))
+
+(use-package mac-pseudo-daemon
+  :if (eq system-type 'darwin)
+  :pin melpa)
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
