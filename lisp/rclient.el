@@ -79,9 +79,9 @@ apparently didn't already exist."
     (tramp-make-tramp-file-name
      (tramp-file-name-method vec)
      (tramp-file-name-user vec)
-     (tramp-file-name-domain vec)
+     nil
      (tramp-file-name-host vec)
-     (tramp-file-name-host-port vec)
+     nil
      file)))
 
 (defun rclient--canonicalize-remote-path (vec path)
