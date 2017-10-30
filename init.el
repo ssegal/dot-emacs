@@ -390,6 +390,9 @@
 (when (and (file-directory-p "/usr/local/bin") (not (member "/usr/local/bin" exec-path)))
   (add-to-list 'exec-path "/usr/local/bin"))
 
+(when (version<= "26.0" emacs-version)
+  (pixel-scroll-mode 1))
+
 ;; Since I use widescreen monitors everywhere, prefer
 ;; horizontal split to vertical split.
 (setq split-height-threshold nil)
