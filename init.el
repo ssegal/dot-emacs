@@ -349,7 +349,7 @@
 (require 'rclient)
 
 ;;;; LINUM MODE
-(when (version<= emacs-version "26.0")
+(when (version< emacs-version "26.0")
   (defvar my/linum-format-fmt)
   (add-hook 'linum-before-numbering-hook
             (lambda ()
