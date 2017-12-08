@@ -275,6 +275,11 @@
   (add-hook 'racer-mode-hool #'eldoc-mode)
   :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))  
 
+(use-package flycheck-rust
+  :init
+  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+  (add-hook 'rust-mode-hook #'flycheck-mode))
+
 (add-hook 'prog-mode-hook (lambda ()
                             (if (version< emacs-version "26.0")
                                 (linum-mode 1)
