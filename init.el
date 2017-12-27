@@ -326,7 +326,7 @@
   :if (and (featurep 'projectile) (featurep 'counsel))
   :config
   (setq projectile-completion-system 'ivy)
-  (counsel-projectile-on))
+  (counsel-projectile-mode))
 
 ;;;; GIT-GUTTER
 (use-package git-gutter
