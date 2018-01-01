@@ -49,6 +49,9 @@
 ;; Initialize package.el here instead of at startup so we can have
 ;; use-package automatically install things.
 (setq package-enable-at-startup nil)
+(when (boundp 'package-pinned-packages)
+  (setq package-pinned-packages
+        '((use-package . "melpa"))))
 (package-initialize)
 
 ;; Make sure use-package is installed
