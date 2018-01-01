@@ -267,15 +267,31 @@
   (when (featurep 'company)
     (add-to-list 'company-backends 'company-robe)))
 
+;; RLS isn't that great right now.  Uncomment to try.
+;;
+;; (use-package lsp-mode
+;;   :demand t)
+
+;; (use-package lsp-flycheck
+;;   :if (featurep 'flycheck)
+;;   :ensure f
+;;   :after (flycheck lsp-mode))
+
+;; (use-package lsp-rust
+;;   :after (rust-mode lsp-mode)
+;;   :hook (rust-mode . lsp-rust-enable)
+
 (use-package racer
   :commands racer-mode
-  :if (and (fboundp 'rust-mode) (featurep 'company))
+  :after (rust-mode company)
+  :if (not (fboundp 'lsp-rust-enable))
   :init
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hool #'eldoc-mode)
   :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))  
 
 (use-package flycheck-rust
+  :after (flycheck rust-mode)
   :init
   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
   (add-hook 'rust-mode-hook #'flycheck-mode))
