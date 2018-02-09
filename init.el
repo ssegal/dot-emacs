@@ -119,10 +119,9 @@
 
 
 (use-package with-editor
-  :config
-  (add-hook 'shell-mode-hook  'with-editor-export-editor)
-  (add-hook 'term-exec-hook   'with-editor-export-editor)
-  (add-hook 'eshell-mode-hook 'with-editor-export-editor))
+  :hook ((shell-mode . with-editor-export-editor)
+         (term-exec . with-editor-export-editor)
+         (eshell-mode . with-editor-export-editor)))
 
 (use-package magit-autoloads
   :ensure magit
@@ -158,47 +157,40 @@
 
 (use-package web-mode
   :commands web-mode
-  :mode (("\\.rhtml\\'" . web-mode)
-         ("\\.erb\\'" . web-mode)
-         ("\\.html?\\'" . web-mode))
+  :mode ("\\.rhtml\\'"
+         "\\.erb\\'"
+         "\\.html?\\'")
   :config
   (setq web-mode-engines-alist
         '(("erb" . "\\.rhtml\\'")
           ("erb" . "\\.erb\\'"))))
 
 (use-package enh-ruby-mode
-  :ensure enh-ruby-mode
-  :commands enh-ruby-mode
   :interpreter "ruby"
-  :mode (("\\.rb$" . enh-ruby-mode)
-         ("\\.rake$" . enh-ruby-mode)
-         ("Rakefile$" . enh-ruby-mode)
-         ("\\.gemspec$" . enh-ruby-mode)
-         ("\\.ru$" . enh-ruby-mode)
-         ("Gemfile$" . enh-ruby-mode)))
+  :mode ("\\.rb$"
+         "\\.rake$"
+         "Rakefile$"
+         "\\.gemspec$"
+         "\\.ru$"
+         "Gemfile$"))
 
 (use-package inf-ruby
   :commands run-ruby)
 
 (use-package yaml-mode
-  :commands yaml-mode
-  :mode ("\\.yml\\'" . yaml-mode))
+  :mode "\\.yml\\'")
 
 (use-package scala-mode
-  :commands scala-mode
-  :mode ("\\.scala\\'" . scala-mode))
+  :mode "\\.scala\\'")
 
 (use-package protobuf-mode
-  :commands protobuf-mode
-  :mode ("\\.proto\\'" . protobuf-mode))
+  :mode "\\.proto\\'")
 
 (use-package js2-mode
-  :commands js2-mode
   :mode "\\.js\\'"
   :init (setq-default js2-basic-offset 2))
 
 (use-package click-mode
-  :commands click-mode
   :mode ("\\.template\\'" "\\.click\\'"))
 
 (use-package function-args
@@ -214,12 +206,8 @@
   :mode "\\.toml\\'")
 
 (use-package cargo
-  :commands cargo-minor-mode
-  :init (add-hook 'rust-mode-hook 'cargo-minor-mode))
-
-(use-package git-timemachine
-  :if (version< "24.4" emacs-version)
-  :commands git-timemachine)
+  :after rust-mode
+  :hook (rust-mode . cargo-minor-mode))
 
 ;;;; TRAMP
 (use-package tramp
@@ -249,25 +237,27 @@
 ;;  :init (add-hook 'c-mode-common-hook (lambda () (ggtags-mode 1))))
 
 ;;;; MARKDOWN
-(use-package markdown-mode
-  :commands markdown-mode)
+(use-package markdown-mode)
 
 (use-package company
   :demand t
   :config
   (global-company-mode 1)
-  :init (setq company-tooltip-align-annotations t))
+  :init
+  (setq company-tooltip-align-annotations t)
+  (setq company-backends (delete 'company-clang company-backends)))
 
 (use-package company-web
-  :if (featurep 'company)
+  :after company
   :commands company-web-html
   :init (add-to-list 'company-backends 'company-web-html))
 
 (use-package robe
-  :commands robe-mode
+  :after enh-ruby-mode
+  :hook (enh-ruby-mode . robe-mode)
+  :commands (robe-mode company-robe)
   :init
-  (add-hook 'enh-ruby-mode-hook 'robe-mode)
-  (when (featurep 'company)
+  (if (featurep 'company)
     (add-to-list 'company-backends 'company-robe)))
 
 ;; RLS isn't that great right now.  Uncomment to try.
@@ -282,22 +272,20 @@
 
 ;; (use-package lsp-rust
 ;;   :after (rust-mode lsp-mode)
-;;   :hook (rust-mode . lsp-rust-enable)
+;;   :hook (rust-mode . lsp-rust-enable))
 
 (use-package racer
-  :commands racer-mode
   :after (rust-mode company)
   :if (not (fboundp 'lsp-rust-enable))
-  :init
-  (add-hook 'rust-mode-hook #'racer-mode)
-  (add-hook 'racer-mode-hool #'eldoc-mode)
+  :hook ((rust-mode . racer-mode)
+         (racer-mode . eldoc-mode))
   :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))  
 
 (use-package flycheck-rust
   :after (flycheck rust-mode)
-  :init
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
-  (add-hook 'rust-mode-hook #'flycheck-mode))
+  :if (not (fboundp 'lsp-rust-enable))
+  :hook ((flycheck-mode . flycheck-rust-setup)
+         (rust-mode . flycheck-mode)))
 
 (add-hook 'prog-mode-hook (lambda ()
                             (if (version< emacs-version "26.0")
@@ -308,7 +296,8 @@
 (use-package dts-mode
   :pin melpa)
 
-(use-package rainbow-delimiters)
+(use-package rainbow-delimiters
+  :commands rainbow-delimiters-mode)
 
 ;;;; PROJECTILE
 (use-package projectile
@@ -328,11 +317,11 @@
 
 (use-package swiper
   :commands swiper
-  :if (featurep 'ivy)
+  :after ivy
   :bind ("C-s" . swiper))
 
 (use-package counsel
-  :if (featurep 'ivy)
+  :after ivy
   :demand t
   :config
   (counsel-mode 1)
@@ -342,7 +331,7 @@
    ("C-c k" . counsel-ag)))
 
 (use-package counsel-projectile
-  :if (and (featurep 'projectile) (featurep 'counsel))
+  :after (projectile counsel)
   :config
   (setq projectile-completion-system 'ivy)
   (counsel-projectile-mode))
