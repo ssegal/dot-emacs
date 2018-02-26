@@ -70,7 +70,7 @@ explanation of the socket path."
 (defun rclient--make-tramp-file-name-from-vec (vec file)
   "Convenience function for making a TRAMP path, since this
 apparently didn't already exist."
-  (if (version<= emacs-version "26.0")
+  (if (version< emacs-version "26.0")
       (tramp-make-tramp-file-name
        (tramp-file-name-method vec)
        (tramp-file-name-user vec)
@@ -86,7 +86,8 @@ apparently didn't already exist."
 
 (defun rclient--canonicalize-remote-path (vec path)
   (with-current-buffer (tramp-get-buffer vec)
-    (s-trim (shell-command-to-string (format "echo %s" path)))))
+    (let ((shell-file-name "/bin/sh"))
+      (s-trim (shell-command-to-string (format "echo %s" path))))))
 
 (defun rclient-get-remote-auth-file (vec)
   "Determine the path for the remote auth file, given a
@@ -146,7 +147,8 @@ connection vector."
 
 (defun rclient-configure-remote-client (&optional vec)
   (interactive)
-  (let ((vec (or vec (tramp-dissect-file-name default-directory))))
+  (let ((vec (or vec (tramp-dissect-file-name default-directory)))
+        (shell-file-name "/bin/sh"))
     (when (not (and tramp-use-ssh-controlmaster-options
                     (equal (tramp-get-method-parameter vec 'tramp-login-program) "ssh")))
       (error "Remote client only supported on SSH-based connections with ControlMaster"))
