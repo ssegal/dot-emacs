@@ -19,7 +19,9 @@
 (defconst my/backup-directory (expand-file-name "backups" user-emacs-directory))
 (unless (file-directory-p my/backup-directory)
   (make-directory my/backup-directory))
-(setq backup-directory-alist `((".*" . ,(expand-file-name "backups" user-emacs-directory))))
+(setq backup-directory-alist `((".*" . ,my/backup-directory))
+      delete-old-versions t
+      version-control t)
 
 ;; Auto-saves, go hide too!
 (defconst my/auto-save-directory (expand-file-name "autosaves" user-emacs-directory))
@@ -63,13 +65,13 @@
 ;; docs.
 (eval-when-compile
   (require 'use-package))
-(require 'diminish)
-(require 'bind-key)
 
 ;; Have use-package default to downloading the package if it doesn't
 ;; exist.  This can still be overridden on a package-specific basis
 ;; with ":ensure nil"
 (setq use-package-always-ensure t)
+
+(use-package bind-key)
 
 ;; Use ibuffer
 (bind-key "C-x C-b" 'ibuffer)
@@ -412,9 +414,6 @@
 (setq split-width-threshold 120)
 
 (setq hexl-bits 8)
-
-;; Force bash as shell (overriding any local path)
-;(setq shell-file-name "bash")
 
 (defun toggle-window-split ()
   (interactive)
