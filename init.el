@@ -388,9 +388,6 @@
 (use-package frame-tag
   :config (frame-tag-mode 1))
 
-(use-package framemove
-  :init (setq framemove-hook-into-windmove t))
-
 ;;;; MISC
 (fset 'yes-or-no-p 'y-or-n-p)
 
