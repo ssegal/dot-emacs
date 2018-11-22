@@ -1,4 +1,4 @@
-;; Prefer newer files.  This is first so that it affects all
+; Prefer newer files.  This is first so that it affects all
 ;; subsequent loads.
 (setq load-prefer-newer t)
 
@@ -157,44 +157,6 @@
 
 (setq c-default-style (quote ((java-mode . "java") (awk-mode . "awk") (other . "meraki"))))
 
-(use-package web-mode
-  :commands web-mode
-  :mode ("\\.rhtml\\'"
-         "\\.erb\\'"
-         "\\.html?\\'")
-  :config
-  (setq web-mode-engines-alist
-        '(("erb" . "\\.rhtml\\'")
-          ("erb" . "\\.erb\\'"))))
-
-(use-package enh-ruby-mode
-  :interpreter "ruby"
-  :mode ("\\.rb$"
-         "\\.rake$"
-         "Rakefile$"
-         "\\.gemspec$"
-         "\\.ru$"
-         "Gemfile$"))
-
-(use-package inf-ruby
-  :commands run-ruby)
-
-(use-package yaml-mode
-  :mode "\\.yml\\'")
-
-(use-package scala-mode
-  :mode "\\.scala\\'")
-
-(use-package protobuf-mode
-  :mode "\\.proto\\'")
-
-(use-package js2-mode
-  :mode "\\.js\\'"
-  :init (setq-default js2-basic-offset 2))
-
-(use-package click-mode
-  :mode ("\\.template\\'" "\\.click\\'"))
-
 (use-package function-args
   :commands function-args-mode)
 
@@ -248,19 +210,6 @@
   :init
   (setq company-tooltip-align-annotations t)
   (setq company-backends (delete 'company-clang company-backends)))
-
-(use-package company-web
-  :after company
-  :commands company-web-html
-  :init (add-to-list 'company-backends 'company-web-html))
-
-(use-package robe
-  :after enh-ruby-mode
-  :hook (enh-ruby-mode . robe-mode)
-  :commands (robe-mode company-robe)
-  :init
-  (if (featurep 'company)
-    (add-to-list 'company-backends 'company-robe)))
 
 ;; RLS isn't that great right now.  Uncomment to try.
 ;;
