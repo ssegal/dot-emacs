@@ -1,4 +1,4 @@
-; Prefer newer files.  This is first so that it affects all
+;; Prefer newer files.  This is first so that it affects all
 ;; subsequent loads.
 (setq load-prefer-newer t)
 
