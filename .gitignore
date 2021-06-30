@@ -4,9 +4,11 @@
 .\#*
 /auto-save-list/
 /elpa/
+/elpy/
 /projectile-bookmarks.eld
 /projectile.cache
 /tramp
+/transient
 /custom.el
 /server/
 /snippets/
