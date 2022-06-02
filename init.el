@@ -98,10 +98,13 @@
   (recentf-mode 1)
   :bind ("C-x C-r" . recentf-open-files))
 
-;; Set theme
-(use-package color-theme-sanityinc-tomorrow
+(use-package vscode-dark-plus-theme
   :demand t
-  :init (load-theme 'sanityinc-tomorrow-night t))
+  :init (load-theme 'vscode-dark-plus t))
+
+;; tab-bar mode
+(unless (version< emacs-version "27.1")
+  (tab-bar-mode))
 
 ;; xterm mouse reporting
 (xterm-mouse-mode 1)
@@ -134,8 +137,6 @@
   (setq vc-handled-backends (delq 'Git vc-handled-backends)))
 
 (use-package git-commit)
-(use-package gitignore-mode)
-(use-package gitconfig-mode)
 
 ;;;; PROGRAMMING
 
@@ -173,11 +174,24 @@
   :after rust-mode
   :hook (rust-mode . cargo-minor-mode))
 
+(use-package go-mode
+  :mode "\\.go\\'")
+
+(use-package go-eldoc
+  :after go-mode
+  :hook (go-mode . go-eldoc-setup))
+
+(use-package go-projectile
+  :after (go-mode projectile))
+
+(use-package docker)
+(use-package dockerfile-mode)
+
 ;;;; TRAMP
 (use-package tramp
   :config
   (setq tramp-default-method "scp")
-  (add-to-list 'tramp-remote-path "/home/ssegal/bin"))
+  (add-to-list 'tramp-remote-path "~/.local/bin"))
 
 (defun hostname (host)
   (car (split-string host "\\.")))
