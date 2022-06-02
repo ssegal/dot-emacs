@@ -184,6 +184,9 @@
 (use-package go-projectile
   :after (go-mode projectile))
 
+(use-package go-dlv
+  :after go-mode)
+
 (use-package docker)
 (use-package dockerfile-mode)
 
