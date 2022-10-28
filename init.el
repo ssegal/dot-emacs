@@ -187,6 +187,8 @@
 (use-package go-dlv
   :after go-mode)
 
+(use-package yaml-mode)
+
 (use-package docker)
 (use-package dockerfile-mode)
 
