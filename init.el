@@ -41,12 +41,10 @@
 (require 'package)
 (setq package-archives
       '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("melpa-stable" . "https://stable.melpa.org/packages/")
         ("melpa" . "https://melpa.org/packages/"))
       package-archive-priorities
-      '(("melpa-stable" . 10)
-        ("gnu" . 5)
-        ("melpa" . 0)))
+      '(("melpa" . 10)
+        ("gnu" . 5)))
 
 ;; Initialize package.el here instead of at startup so we can have
 ;; use-package automatically install things.
@@ -188,9 +186,12 @@
   :after go-mode)
 
 (use-package yaml-mode)
+(use-package systemd)
 
 (use-package docker)
 (use-package dockerfile-mode)
+
+(use-package bitbake)
 
 ;;;; TRAMP
 (use-package tramp
@@ -249,7 +250,7 @@
   :if (not (fboundp 'lsp-rust-enable))
   :hook ((rust-mode . racer-mode)
          (racer-mode . eldoc-mode))
-  :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))  
+  :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))
 
 (use-package flycheck-rust
   :after (flycheck rust-mode)
