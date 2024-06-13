@@ -162,15 +162,27 @@
 (use-package elpy
   :config (elpy-enable))
 
-(use-package rust-mode
-  :mode "\\.rs\\'")
+(use-package rustic
+  :after lsp-mode)
 
-(use-package toml-mode
-  :mode "\\.toml\\'")
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         ;; (XXX-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
 
-(use-package cargo
-  :after rust-mode
-  :hook (rust-mode . cargo-minor-mode))
+(use-package which-key
+  :config
+  (which-key-mode))
+
+(use-package lsp-ui
+  :commands lsp-ui-mode)
+(use-package lsp-ivy
+  :commands lsp-ivy-workplace-symbol)
 
 (use-package go-mode
   :mode "\\.go\\'")
@@ -190,7 +202,8 @@
 
 (use-package docker)
 (use-package dockerfile-mode)
-
+(when (version< emacs-version "29.0")
+  (use-package docker-tramp))
 (use-package bitbake)
 
 ;;;; TRAMP
@@ -201,24 +214,6 @@
 
 (defun hostname (host)
   (car (split-string host "\\.")))
-
-;;;; ORG-MODE
-
-(use-package org
-  :init (setq org-replace-disputed-keys t)
-  :config
-  (setq org-log-done t)
-  (setq org-agenda-files (list "~/Dropbox/org"))
-  (setq org-time-stamp-custom-formats '("<%m/%d/%Y %a>" . "<%m/%d/%Y %a %I:%M %p>"))
-  (setq-default org-display-custom-times t)
-  :bind (("C-c l" . org-store-link)
-         ("C-c a" . org-agenda)))
-
-;;;; GTAGS
-;;(use-package ggtags
-;;  :ensure ggtags
-;;  :commands ggtags-mode
-;;  :init (add-hook 'c-mode-common-hook (lambda () (ggtags-mode 1))))
 
 ;;;; MARKDOWN
 (use-package markdown-mode)
@@ -231,42 +226,13 @@
   (setq company-tooltip-align-annotations t)
   (setq company-backends (delete 'company-clang company-backends)))
 
-;; RLS isn't that great right now.  Uncomment to try.
-;;
-;; (use-package lsp-mode
-;;   :demand t)
-
-;; (use-package lsp-flycheck
-;;   :if (featurep 'flycheck)
-;;   :ensure f
-;;   :after (flycheck lsp-mode))
-
-;; (use-package lsp-rust
-;;   :after (rust-mode lsp-mode)
-;;   :hook (rust-mode . lsp-rust-enable))
-
-(use-package racer
-  :after (rust-mode company)
-  :if (not (fboundp 'lsp-rust-enable))
-  :hook ((rust-mode . racer-mode)
-         (racer-mode . eldoc-mode))
-  :bind (:map rust-mode-map ("TAB" . company-indent-or-complete-common)))
-
-(use-package flycheck-rust
-  :after (flycheck rust-mode)
-  :if (not (fboundp 'lsp-rust-enable))
-  :hook ((flycheck-mode . flycheck-rust-setup)
-         (rust-mode . flycheck-mode)))
-
 (add-hook 'prog-mode-hook (lambda ()
                             (if (version< emacs-version "26.0")
                                 (linum-mode 1)
                               (display-line-numbers-mode 1))
                             (setq show-trailing-whitespace t)))
 
-(use-package dts-mode
-  :pin melpa)
-
+(use-package dts-mode)
 (use-package rainbow-delimiters
   :commands rainbow-delimiters-mode)
 
@@ -274,9 +240,12 @@
 (use-package projectile
   :demand t
   :init
+  (projectile-mode +1)
   (setq projectile-use-git-grep t)
   (setq projectile-enable-caching t)
-  :config (projectile-global-mode 1))
+  :bind (:map projectile-mode-map
+              ("s-p" . projectile-command-map)
+              ("C-c p" . projectile-command-map)))
 
 ;;;; IVY
 (use-package ivy
@@ -299,7 +268,8 @@
   :bind
   (("C-c f" . counsel-grep)
    ("C-c j" . counsel-git-grep)
-   ("C-c k" . counsel-ag)))
+   ("C-c k" . counsel-ag)
+   ("C-/" . counsel-rg)))
 
 (use-package counsel-projectile
   :after (projectile counsel)
