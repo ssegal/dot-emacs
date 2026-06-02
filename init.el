@@ -134,13 +134,27 @@
          (term-exec . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)))
 
+(use-package git-commit-ts-mode
+  :after treesit-auto)
+
 (use-package magit
   :ensure t
   :defer t
   :bind (("C-x g" . magit-status))
-  :init (require 'git-commit))
+  :init
+  (require 'git-commit)
+  (when (fboundp 'git-commit-ts-mode)
+    (setq git-commit-major-mode 'git-commit-ts-mode)))
 
 ;;;; PROGRAMMING
+
+(use-package treesit-auto
+  :if (when (fboundp 'treesit-available-p)
+        (treesit-available-p))
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist))
 
 ;; I hate tabs.
 (setq-default indent-tabs-mode nil)
