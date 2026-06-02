@@ -1,3 +1,4 @@
+
 ;; Prefer newer files.  This is first so that it affects all
 ;; subsequent loads.
 (setq load-prefer-newer t)
@@ -112,6 +113,13 @@
 
 (transient-mark-mode 1)
 
+(use-package kkp
+  :ensure t
+  :hook (tty-setup . global-kkp-mode)
+  :config
+  ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
+  )
+
 ;; Default to UTF-8
 (prefer-coding-system 'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -133,8 +141,6 @@
   :init
   (setq magit-last-seen-setup-instructions "1.4.0")
   (setq vc-handled-backends (delq 'Git vc-handled-backends)))
-
-(use-package git-commit)
 
 ;;;; PROGRAMMING
 
