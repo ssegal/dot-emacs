@@ -134,13 +134,11 @@
          (term-exec . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)))
 
-(use-package magit-autoloads
-  :ensure magit
-  :bind (("C-x g" . magit-status)
-         ("C-x M-g" . magit-dispatch-popup))
-  :init
-  (setq magit-last-seen-setup-instructions "1.4.0")
-  (setq vc-handled-backends (delq 'Git vc-handled-backends)))
+(use-package magit
+  :ensure t
+  :defer t
+  :bind (("C-x g" . magit-status))
+  :init (require 'git-commit))
 
 ;;;; PROGRAMMING
 
