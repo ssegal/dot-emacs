@@ -47,22 +47,15 @@
       '(("melpa" . 10)
         ("gnu" . 5)))
 
-(when (version< emacs-version "29.1")
-  ;; Initialize package.el here instead of at startup so we can have
-  ;; use-package automatically install things.
+(unless (fboundp 'use-package)
+  ;; If we don't have use-package, then this is a first-time running
+  ;; on an Emacs without use-package built-in.  In this case, we
+  ;; should install it with package.el.
   (setq package-enable-at-startup nil)
-  (when (boundp 'package-pinned-packages)
-    (setq package-pinned-packages
-          '((use-package . "melpa"))))
   (package-initialize)
+  (package-refresh-contents)
+  (package-install 'use-package)
 
-  ;; Make sure use-package is installed
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
-
-  ;; Initialize use-package.  This init code is from the use-package
-  ;; docs.
   (eval-when-compile
     (require 'use-package)))
 
@@ -135,9 +128,6 @@
          (term-exec . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)))
 
-(use-package git-commit-ts-mode
-  :after treesit-auto)
-
 (use-package magit
   :ensure t
   :defer t
@@ -149,12 +139,21 @@
 
 ;;;; PROGRAMMING
 
-(use-package treesit-auto
-  :requires treesit
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist))
+;; treesit-auto will pull ABI 15 grammars.  Let's not even try to deal
+;; with ABI 14.  For some reason this doesn't work in a use-package
+;; :if block, so we'll handle it outside.
+(when (and (fboundp 'treesit-available-p)
+           (treesit-available-p)
+           (<= 15 (treesit-library-abi-version)))
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode))
+
+  (use-package git-commit-ts-mode
+    :after treesit-auto))
 
 ;; I hate tabs.
 (setq-default indent-tabs-mode nil)
@@ -173,9 +172,6 @@
                (indent-tabs-mode . nil)))
 
 (setq c-default-style (quote ((java-mode . "java") (awk-mode . "awk") (other . "meraki"))))
-
-(use-package function-args
-  :commands function-args-mode)
 
 (use-package elpy
   :config (elpy-enable))
