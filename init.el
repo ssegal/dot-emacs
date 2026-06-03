@@ -150,8 +150,7 @@
 ;;;; PROGRAMMING
 
 (use-package treesit-auto
-  :if (when (fboundp 'treesit-available-p)
-        (treesit-available-p))
+  :requires treesit
   :custom
   (treesit-auto-install 'prompt)
   :config
@@ -200,8 +199,6 @@
 
 (use-package lsp-ui
   :commands lsp-ui-mode)
-(use-package lsp-ivy
-  :commands lsp-ivy-workplace-symbol)
 
 (use-package go-mode
   :mode "\\.go\\'")
@@ -209,9 +206,6 @@
 (use-package go-eldoc
   :after go-mode
   :hook (go-mode . go-eldoc-setup))
-
-(use-package go-projectile
-  :after (go-mode projectile))
 
 (use-package go-dlv
   :after go-mode)
@@ -255,46 +249,71 @@
 (use-package rainbow-delimiters
   :commands rainbow-delimiters-mode)
 
-;;;; PROJECTILE
-(use-package projectile
-  :demand t
+(use-package project
+  :ensure nil)
+
+;;;; VERTICO AND FRIENDS
+
+;; 1. The UI: Replaces Ivy core
+(use-package vertico
   :init
-  (projectile-mode +1)
-  (setq projectile-use-git-grep t)
-  (setq projectile-enable-caching t)
-  :bind (:map projectile-mode-map
-              ("s-p" . projectile-command-map)
-              ("C-c p" . projectile-command-map)))
+  (vertico-mode))
 
-;;;; IVY
-(use-package ivy
+;; 2. The Search: Replaces Ivy fuzzy matching
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+;; 3. The Commands: Replaces Swiper and Counsel
+(use-package consult
+  :bind (;; Replaces Swiper
+         ("C-s" . consult-line)
+         ;; Replaces counsel-switch-to-buffer
+         ("C-x b" . consult-buffer)
+         ;; Replaces counsel-yank-pop
+         ("M-y" . consult-yank-pop)
+         ;; Replaces counsel-rg / counsel-ag
+         ("M-g g" . consult-ripgrep)))
+
+;; 4. Rich Meta-Information (Optional but highly recommended)
+(use-package marginalia
   :init
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d/%d) ")
-  :config
-  (ivy-mode 1))
+  (marginalia-mode))
 
-(use-package swiper
-  :commands swiper
-  :after ivy
-  :bind ("C-s" . swiper))
-
-(use-package counsel
-  :after ivy
-  :demand t
-  :config
-  (counsel-mode 1)
+(use-package embark
   :bind
-  (("C-c f" . counsel-grep)
-   ("C-c j" . counsel-git-grep)
-   ("C-c k" . counsel-ag)
-   ("C-/" . counsel-rg)))
+  (("C-." . embark-act)         ;; Replaces M-o from Ivy
+   ("M-." . embark-dwim)        ;; "Do What I Mean" contextual action
+   ("C-h B" . embark-bindings)) ;; Alternative to major-mode help
 
-(use-package counsel-projectile
-  :after (projectile counsel)
+  :init
+  ;; Optionally replace the minibuffer help with Embark
+  (setq prefix-help-command #'embark-prefix-help-command)
+
   :config
-  (setq projectile-completion-system 'ivy)
-  (counsel-projectile-mode))
+  ;; Hide the mode line of the Embark live-reporting buffer
+  (add-to-list 'display-buffer-alist
+               '("\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 (display-buffer-at-bottom)
+                 (window-parameters (no-other-window . t))
+                 (window-height . shrink-to-fit))))
+
+;; Integrates Consult search buffers with Embark actions
+(use-package embark-consult
+  :ensure t
+  :after (embark consult)
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package embark-vc
+  :after embark)
+
+(use-package consult-company
+  :after (consult company))
+
+(use-package consult-lsp
+  :after (consult lsp))
 
 ;;;; GIT-GUTTER
 (use-package git-gutter
