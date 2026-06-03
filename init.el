@@ -47,23 +47,24 @@
       '(("melpa" . 10)
         ("gnu" . 5)))
 
-;; Initialize package.el here instead of at startup so we can have
-;; use-package automatically install things.
-(setq package-enable-at-startup nil)
-(when (boundp 'package-pinned-packages)
-  (setq package-pinned-packages
-        '((use-package . "melpa"))))
-(package-initialize)
+(when (version< emacs-version "29.1")
+  ;; Initialize package.el here instead of at startup so we can have
+  ;; use-package automatically install things.
+  (setq package-enable-at-startup nil)
+  (when (boundp 'package-pinned-packages)
+    (setq package-pinned-packages
+          '((use-package . "melpa"))))
+  (package-initialize)
 
-;; Make sure use-package is installed
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+  ;; Make sure use-package is installed
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
 
-;; Initialize use-package.  This init code is from the use-package
-;; docs.
-(eval-when-compile
-  (require 'use-package))
+  ;; Initialize use-package.  This init code is from the use-package
+  ;; docs.
+  (eval-when-compile
+    (require 'use-package)))
 
 ;; Have use-package default to downloading the package if it doesn't
 ;; exist.  This can still be overridden on a package-specific basis
