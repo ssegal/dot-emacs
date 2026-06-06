@@ -11,6 +11,10 @@
 ;; each 50MB of allocated data (the default is on every 0.76MB)
 (setq gc-cons-threshold 50000000)
 
+;; Reset to a more reasonable value after startup for better responsiveness
+(add-hook 'emacs-startup-hook
+          (lambda () (setq gc-cons-threshold 800000)))
+
 ;; Move customizer stuff to another file so it doesn't clog up this
 ;; one.
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
@@ -36,12 +40,11 @@
 (unless (file-directory-p my/lisp-directory)
   (make-directory my/lisp-directory))
 (add-to-list 'load-path my/lisp-directory)
-(add-to-list 'load-path (expand-file-name "osx-pseudo-daemon" my/lisp-directory))
 
 ;; package.el
 (require 'package)
 (setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
+      '(("gnu" . "https://elpa.gnu.org/packages/")
         ("melpa" . "https://melpa.org/packages/"))
       package-archive-priorities
       '(("melpa" . 10)
@@ -86,7 +89,7 @@
 (use-package recentf
   :demand t
   :init
-  (setq recentf-exclude '("/elpa/" '".recentf" '"COMMIT_EDITMSG"))
+  (setq recentf-exclude '("/elpa/" ".recentf" "COMMIT_EDITMSG"))
   :config
   (recentf-mode 1)
   :bind ("C-x C-r" . recentf-open-files))
@@ -96,8 +99,7 @@
   :init (load-theme 'vscode-dark-plus t))
 
 ;; tab-bar mode
-(unless (version< emacs-version "27.1")
-  (tab-bar-mode))
+(tab-bar-mode)
 
 ;; xterm mouse reporting
 (xterm-mouse-mode 1)
@@ -115,10 +117,7 @@
   )
 
 ;; Default to UTF-8
-(prefer-coding-system 'utf-8)
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
+(set-language-environment "UTF-8")
 
 ;;;; GIT STUFF
 
@@ -173,35 +172,29 @@
 
 (setq c-default-style (quote ((java-mode . "java") (awk-mode . "awk") (other . "meraki"))))
 
-(use-package elpy
-  :config (elpy-enable))
+;; Use eglot for LSP support.  eglot is built-in for Emacs 29+; on
+;; older versions (e.g. the Emacs 27.1 on Ubuntu 22.04) :ensure t pulls
+;; it from GNU ELPA.  On 29+ this just installs a possibly-newer ELPA
+;; copy, which is harmless.
+;; Language servers needed: clangd, gopls, pylsp, yaml-language-server, bash-language-server
+(use-package eglot
+  :ensure t
+  :hook ((python-mode python-ts-mode
+          go-mode go-ts-mode
+          c-mode c-ts-mode c++-mode c++-ts-mode
+          yaml-mode yaml-ts-mode
+          sh-mode bash-ts-mode) . eglot-ensure))
 
 (use-package rustic
-  :after lsp-mode)
-
-(use-package lsp-mode
-  :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  (setq lsp-keymap-prefix "C-c l")
-  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-         ;; (XXX-mode . lsp)
-         ;; if you want which-key integration
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp)
+  :custom
+  (rustic-lsp-client 'eglot))
 
 (use-package which-key
   :config
   (which-key-mode))
 
-(use-package lsp-ui
-  :commands lsp-ui-mode)
-
 (use-package go-mode
   :mode "\\.go\\'")
-
-(use-package go-eldoc
-  :after go-mode
-  :hook (go-mode . go-eldoc-setup))
 
 (use-package go-dlv
   :after go-mode)
@@ -227,18 +220,16 @@
 ;;;; MARKDOWN
 (use-package markdown-mode)
 
-(use-package company
-  :demand t
-  :config
-  (global-company-mode 1)
+;; Corfu - modern completion UI that integrates with Vertico/Orderless
+(use-package corfu
+  :custom
+  (corfu-auto t)
+  (corfu-cycle t)
   :init
-  (setq company-tooltip-align-annotations t)
-  (setq company-backends (delete 'company-clang company-backends)))
+  (global-corfu-mode))
 
 (add-hook 'prog-mode-hook (lambda ()
-                            (if (version< emacs-version "26.0")
-                                (linum-mode 1)
-                              (display-line-numbers-mode 1))
+                            (display-line-numbers-mode 1)
                             (setq show-trailing-whitespace t)))
 
 (use-package dts-mode)
@@ -305,18 +296,9 @@
 (use-package embark-vc
   :after embark)
 
-(use-package consult-company
-  :after (consult company))
-
-(use-package consult-lsp
-  :after (consult lsp))
-
 ;;;; GIT-GUTTER
 (use-package git-gutter
-  :commands git-gutter-mode
-  :config
-  (when (version< emacs-version "26.0")
-    (git-gutter:linum-setup)))
+  :commands git-gutter-mode)
 
 ;; (when (featurep 'git-gutter)
 ;;   (global-git-gutter-mode t))
@@ -331,26 +313,6 @@
 ;;;; SERVER
 (require 'rclient)
 
-;;;; LINUM MODE
-(when (version< emacs-version "26.0")
-  (defvar my/linum-format-fmt)
-  (add-hook 'linum-before-numbering-hook
-            (lambda ()
-              (setq-local my/linum-format-fmt
-                          (let ((w (length (number-to-string
-			                    (count-lines (point-min) (point-max))))))
-	                    (concat "%" (number-to-string w) "d")))
-              (setq-local my/linum-format 'linum-format-func)))
-
-  (defun linum-format-func (line)
-    (if (display-graphic-p nil)
-        (propertize (format my/linum-format-fmt line) 'face 'linum)
-      (concat
-       (propertize (format my/linum-format-fmt line) 'face 'linum)
-       (propertize " " 'face 'fringe))))
-
-  (setq linum-format 'linum-format-func))
-
 ;;;; UNIQUIFY
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'post-forward-angle-brackets)
@@ -362,7 +324,9 @@
   :config (frame-tag-mode 1))
 
 ;;;; MISC
-(fset 'yes-or-no-p 'y-or-n-p)
+(if (version<= "28.0" emacs-version)
+    (setopt use-short-answers t)
+  (fset 'yes-or-no-p 'y-or-n-p))
 
 (winner-mode 1)
 (size-indication-mode 1)
@@ -375,7 +339,8 @@
 (when (and (file-directory-p "/usr/local/bin") (not (member "/usr/local/bin" exec-path)))
   (add-to-list 'exec-path "/usr/local/bin"))
 
-(when (version<= "26.0" emacs-version)
+(if (version<= "29.0" emacs-version)
+    (pixel-scroll-precision-mode 1)
   (pixel-scroll-mode 1))
 
 ;; Since I use widescreen monitors everywhere, prefer
@@ -430,6 +395,10 @@
       ((eq system-type 'windows-nt)
        (when (find-font (font-spec :name "Consolas"))
          (set-face-attribute 'default nil :font  "Consolas-10"))))
+
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns))
+  :config (exec-path-from-shell-initialize))
 
 (use-package osx-clipboard
   :if (eq system-type 'darwin))

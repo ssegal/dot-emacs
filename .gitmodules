@@ -1,3 +1,0 @@
-[submodule "lisp/osx-pseudo-daemon"]
-	path = lisp/osx-pseudo-daemon
-	url = https://github.com/ssegal/osx-pseudo-daemon.git
