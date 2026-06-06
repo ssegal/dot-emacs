@@ -1,3 +1,5 @@
+(when (version< emacs-version "27.1")
+  (error "Emacs version 27.1 or later required"))
 
 ;; Prefer newer files.  This is first so that it affects all
 ;; subsequent loads.
@@ -45,10 +47,12 @@
 (require 'package)
 (setq package-archives
       '(("gnu" . "https://elpa.gnu.org/packages/")
+        ("nongnu" . "https://elpa.nongnu.org/nongnu/")
         ("melpa" . "https://melpa.org/packages/"))
       package-archive-priorities
       '(("melpa" . 10)
-        ("gnu" . 5)))
+        ("gnu" . 5)
+        ("nongnu" . 5)))
 
 (unless (fboundp 'use-package)
   ;; If we don't have use-package, then this is a first-time running
@@ -98,29 +102,19 @@
   :demand t
   :init (load-theme 'vscode-dark-plus t))
 
-;; tab-bar mode
 (tab-bar-mode)
-
-;; xterm mouse reporting
 (xterm-mouse-mode 1)
-
-;; Delete selection with backspace or delete.
 (delete-selection-mode 1)
-
 (transient-mark-mode 1)
 
 (use-package kkp
   :ensure t
-  :hook (tty-setup . global-kkp-mode)
-  :config
-  ;; (setq kkp-alt-modifier 'alt) ;; use this if you want to map the Alt keyboard modifier to Alt in Emacs (and not to Meta)
-  )
+  :hook (tty-setup . global-kkp-mode))
 
 ;; Default to UTF-8
 (set-language-environment "UTF-8")
 
 ;;;; GIT STUFF
-
 
 (use-package with-editor
   :hook ((shell-mode . with-editor-export-editor)
@@ -228,6 +222,20 @@
   :init
   (global-corfu-mode))
 
+;; Corfu's popup uses child frames, which don't exist in a TTY.
+;; corfu-terminal renders the popup with overlays instead.  Since this
+;; is a (pseudo-)daemon setup that mixes GUI and TTY frames, decide
+;; per-frame rather than once at startup.
+(use-package corfu-terminal
+  :after corfu
+  :config
+  (defun my/corfu-terminal-set-up (&optional frame)
+    "Enable `corfu-terminal-mode' only when FRAME is a TTY frame."
+    (with-selected-frame (or frame (selected-frame))
+      (corfu-terminal-mode (if (display-graphic-p) -1 1))))
+  (add-hook 'server-after-make-frame-hook #'my/corfu-terminal-set-up)
+  (my/corfu-terminal-set-up))
+
 (add-hook 'prog-mode-hook (lambda ()
                             (display-line-numbers-mode 1)
                             (setq show-trailing-whitespace t)))
@@ -244,7 +252,10 @@
 ;; 1. The UI: Replaces Ivy core
 (use-package vertico
   :init
-  (vertico-mode))
+  (vertico-mode)
+  :config
+  ;; Make candidates clickable (vertico-mouse ships with vertico).
+  (vertico-mouse-mode))
 
 ;; 2. The Search: Replaces Ivy fuzzy matching
 (use-package orderless
@@ -320,8 +331,11 @@
 ;;;; FRAME AND WINDOW NAVIGATION
 
 (windmove-default-keybindings 'meta)
-(use-package frame-tag
-  :config (frame-tag-mode 1))
+(use-package ace-window
+  :bind ("M-o" . ace-window)
+  :custom
+  ;; Jump to windows across all visible frames, replacing frame-tag.
+  (aw-scope 'visible))
 
 ;;;; MISC
 (if (version<= "28.0" emacs-version)
@@ -336,8 +350,6 @@
 (show-paren-mode 1)
 (column-number-mode 1)
 (setq inhibit-startup-screen t)
-(when (and (file-directory-p "/usr/local/bin") (not (member "/usr/local/bin" exec-path)))
-  (add-to-list 'exec-path "/usr/local/bin"))
 
 (if (version<= "29.0" emacs-version)
     (pixel-scroll-precision-mode 1)
@@ -387,6 +399,7 @@
 (bind-key "C-c x" 'close-and-kill-next-pane)
 
 ;;;; SYSTEM-SPECIFIC SETUP
+
 (cond ((eq system-type 'darwin)
        (when (executable-find "gls")
          (setq insert-directory-program "gls"))
@@ -396,12 +409,17 @@
        (when (find-font (font-spec :name "Consolas"))
          (set-face-attribute 'default nil :font  "Consolas-10"))))
 
+; On MacOS, make sure we use GNU ls if available.
+(when (eq system-type 'darwin)
+  (let ((gls (executable-find "gls")))
+    (if gls
+        (setq insert-directory-program gls
+              dired-use-ls-dired t)
+      (warn "gls not found - dired will not work properly"))))
+
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
   :config (exec-path-from-shell-initialize))
-
-(use-package osx-clipboard
-  :if (eq system-type 'darwin))
 
 (use-package mac-pseudo-daemon
   :if (eq system-type 'darwin)
