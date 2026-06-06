@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 (when (version< emacs-version "27.1")
   (error "Emacs version 27.1 or later required"))
 
@@ -83,9 +85,6 @@
   (bind-key "M-RET" 'toggle-frame-fullscreen))
 
 (cua-mode 1)
-(bind-key "C-c d" 'vc-git-grep)
-(bind-key "C-c f" 'grep)
-(bind-key "C-c C-f" 'imenu)
 (bind-key "C-x r q" 'save-buffers-kill-emacs)
 (bind-key "C-c r" 'revert-buffer)
 
@@ -109,7 +108,13 @@
 
 (use-package kkp
   :ensure t
+  :defer t
   :hook (tty-setup . global-kkp-mode))
+
+(use-package rg
+  :bind (("C-c s" . rg-menu))
+  :config
+  (rg-enable-default-bindings))
 
 ;; Default to UTF-8
 (set-language-environment "UTF-8")
@@ -166,6 +171,12 @@
 
 (setq c-default-style (quote ((java-mode . "java") (awk-mode . "awk") (other . "meraki"))))
 
+(if (version< emacs-version "30.1")
+    (use-package editorconfig
+      :config
+      (editorconfig-mode))
+  (editorconfig-mode))
+
 ;; Use eglot for LSP support.  eglot is built-in for Emacs 29+; on
 ;; older versions (e.g. the Emacs 27.1 on Ubuntu 22.04) :ensure t pulls
 ;; it from GNU ELPA.  On 29+ this just installs a possibly-newer ELPA
@@ -183,8 +194,11 @@
   :custom
   (rustic-lsp-client 'eglot))
 
-(use-package which-key
-  :config
+(if (version< emacs-version "30.1")
+    (use-package which-key
+      :pin "manual"
+      :config
+      (which-key-mode))
   (which-key-mode))
 
 (use-package go-mode
@@ -225,16 +239,18 @@
 ;; Corfu's popup uses child frames, which don't exist in a TTY.
 ;; corfu-terminal renders the popup with overlays instead.  Since this
 ;; is a (pseudo-)daemon setup that mixes GUI and TTY frames, decide
-;; per-frame rather than once at startup.
-(use-package corfu-terminal
-  :after corfu
-  :config
-  (defun my/corfu-terminal-set-up (&optional frame)
-    "Enable `corfu-terminal-mode' only when FRAME is a TTY frame."
-    (with-selected-frame (or frame (selected-frame))
-      (corfu-terminal-mode (if (display-graphic-p) -1 1))))
-  (add-hook 'server-after-make-frame-hook #'my/corfu-terminal-set-up)
-  (my/corfu-terminal-set-up))
+;; per-frame rather than once at startup.  This package won't be
+;; necessary in Emacs 31.
+(when (version< emacs-version "31.0")
+  (use-package corfu-terminal
+    :after corfu
+    :config
+    (defun my/corfu-terminal-set-up (&optional frame)
+      "Enable `corfu-terminal-mode' only when FRAME is a TTY frame."
+      (with-selected-frame (or frame (selected-frame))
+        (corfu-terminal-mode (if (display-graphic-p) -1 1))))
+    (add-hook 'server-after-make-frame-hook #'my/corfu-terminal-set-up)
+    (my/corfu-terminal-set-up)))
 
 (add-hook 'prog-mode-hook (lambda ()
                             (display-line-numbers-mode 1)
@@ -244,8 +260,7 @@
 (use-package rainbow-delimiters
   :commands rainbow-delimiters-mode)
 
-(use-package project
-  :ensure nil)
+(require 'project)
 
 ;;;; VERTICO AND FRIENDS
 
@@ -400,30 +415,37 @@
 
 ;;;; SYSTEM-SPECIFIC SETUP
 
-(cond ((eq system-type 'darwin)
-       (when (executable-find "gls")
-         (setq insert-directory-program "gls"))
-       (when (find-font (font-spec :name "Menlo"))
-         (set-face-attribute 'default nil :font "Menlo-12")))
-      ((eq system-type 'windows-nt)
-       (when (find-font (font-spec :name "Consolas"))
-         (set-face-attribute 'default nil :font  "Consolas-10"))))
+;; This check is built-in for Emacs 30
+(when (and
+       (eq system-type 'darwin)
+       (version< emacs-version "30.1")
+       (executable-find "gls"))
+  (setq insert-directory-program "gls"))
 
-; On MacOS, make sure we use GNU ls if available.
+;; For GUI windows, try fonts
+(defun my/set-preferred-font (frame)
+  "Set the default font for FRAME if it is a graphical display"
+  (with-selected-frame frame
+    (when (display-graphic-p)
+      (let ((font-name
+             (cond
+              ((member "JetBrains Mono" (font-family-list)) "JetBrains Mono-12")
+              ((member "Menlo" (font-family-list)) "Menlo-12")
+              ((member "Cascadia Code" (font-family-list)) "Cascadia Code-12")
+              ((member "DejaVu Sans Mono" (font-family-list)) "DejaVu Sans Mono-12")
+              (t "Monospace-12"))))
+        (set-frame-font font-name nil t)))))
+
+(add-hook 'after-init-hook (lambda () (my/set-preferred-font (selected-frame))))
+(add-hook 'after-make-frame-functions #'my/set-preferred-font)
+
+(when (memq window-system '(mac ns))
+  (use-package exec-path-from-shell
+    :config (exec-path-from-shell-initialize)))
+
 (when (eq system-type 'darwin)
-  (let ((gls (executable-find "gls")))
-    (if gls
-        (setq insert-directory-program gls
-              dired-use-ls-dired t)
-      (warn "gls not found - dired will not work properly"))))
-
-(use-package exec-path-from-shell
-  :if (memq window-system '(mac ns))
-  :config (exec-path-from-shell-initialize))
-
-(use-package mac-pseudo-daemon
-  :if (eq system-type 'darwin)
-  :pin melpa)
+  (use-package mac-pseudo-daemon
+    :pin melpa))
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
