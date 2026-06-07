@@ -73,7 +73,10 @@
 ;; with ":ensure nil"
 (setq use-package-always-ensure t)
 
-(use-package bind-key)
+;; Defer by default, since most packages have good autoloads.
+(setq use-package-always-defer t)
+
+(use-package bind-key :demand t)
 
 ;; Use ibuffer
 (bind-key "C-x C-b" 'ibuffer)
@@ -107,8 +110,6 @@
 (transient-mark-mode 1)
 
 (use-package kkp
-  :ensure t
-  :defer t
   :hook (tty-setup . global-kkp-mode))
 
 (use-package rg
@@ -119,6 +120,15 @@
 ;; Default to UTF-8
 (set-language-environment "UTF-8")
 
+(use-package helpful
+  :bind
+  (([remap describe-function] . helpful-callable)
+   ([remap describe-command] . helpful-command)
+   ([remap describe-variable] . helpful-variable)
+   ([remap describe-key] . helpful-key)
+   ("C-c C-d" . helpful-at-point)
+   ("C-h F" . helpful-function)))
+
 ;;;; GIT STUFF
 
 (use-package with-editor
@@ -127,13 +137,9 @@
          (eshell-mode . with-editor-export-editor)))
 
 (use-package magit
-  :ensure t
   :defer t
-  :bind (("C-x g" . magit-status))
   :init
-  (require 'git-commit)
-  (when (fboundp 'git-commit-ts-mode)
-    (setq git-commit-major-mode 'git-commit-ts-mode)))
+  (require 'git-commit))
 
 ;;;; PROGRAMMING
 
@@ -144,14 +150,24 @@
            (treesit-available-p)
            (<= 15 (treesit-library-abi-version)))
   (use-package treesit-auto
+    :demand t
     :custom
     (treesit-auto-install 'prompt)
     :config
     (treesit-auto-add-to-auto-mode-alist 'all)
     (global-treesit-auto-mode))
 
+  ;; Use git-commit-ts-mode for commit messages, but only once its
+  ;; tree-sitter grammar is actually available; otherwise git-commit
+  ;; falls back to its default major mode.
   (use-package git-commit-ts-mode
-    :after treesit-auto))
+    :after (treesit-auto git-commit)
+    :init
+    (add-to-list 'treesit-language-source-alist
+                 '(gitcommit "https://github.com/gbprod/tree-sitter-gitcommit"))
+    :config
+    (when (treesit-ready-p 'gitcommit)
+      (setq git-commit-major-mode 'git-commit-ts-mode))))
 
 ;; I hate tabs.
 (setq-default indent-tabs-mode nil)
@@ -173,7 +189,8 @@
 
 (if (version< emacs-version "30.1")
     (use-package editorconfig
-      :config
+      :demand t
+      :init
       (editorconfig-mode))
   (editorconfig-mode))
 
@@ -183,7 +200,6 @@
 ;; copy, which is harmless.
 ;; Language servers needed: clangd, gopls, pylsp, yaml-language-server, bash-language-server
 (use-package eglot
-  :ensure t
   :hook ((python-mode python-ts-mode
           go-mode go-ts-mode
           c-mode c-ts-mode c++-mode c++-ts-mode
@@ -196,14 +212,12 @@
 
 (if (version< emacs-version "30.1")
     (use-package which-key
-      :pin "manual"
-      :config
+      :demand t
+      :init
       (which-key-mode))
   (which-key-mode))
 
-(use-package go-mode
-  :mode "\\.go\\'")
-
+(use-package go-mode)
 (use-package go-dlv
   :after go-mode)
 
@@ -213,13 +227,25 @@
 (use-package docker)
 (use-package dockerfile-mode)
 (when (version< emacs-version "29.0")
-  (use-package docker-tramp))
+  (use-package docker-tramp
+    :after tramp))
 (use-package bitbake)
+(use-package bazel)
+(use-package cmake-mode)
+(use-package meson-mode)
+(use-package protobuf-mode)
+(use-package jinja2-mode)
+(use-package ssh-config-mode)
+(use-package terraform-mode)
+(use-package toml)
+(use-package typescript-mode)
 
 ;;;; TRAMP
 (use-package tramp
+  :custom
+  (remote-file-name-inhibit-auto-save-visited t)
+  (make-backup-files nil)
   :config
-  (setq tramp-default-method "scp")
   (add-to-list 'tramp-remote-path "~/.local/bin"))
 
 (defun hostname (host)
@@ -230,6 +256,7 @@
 
 ;; Corfu - modern completion UI that integrates with Vertico/Orderless
 (use-package corfu
+  :demand t
   :custom
   (corfu-auto t)
   (corfu-cycle t)
@@ -257,8 +284,7 @@
                             (setq show-trailing-whitespace t)))
 
 (use-package dts-mode)
-(use-package rainbow-delimiters
-  :commands rainbow-delimiters-mode)
+(use-package rainbow-delimiters)
 
 (require 'project)
 
@@ -266,6 +292,7 @@
 
 ;; 1. The UI: Replaces Ivy core
 (use-package vertico
+  :demand t
   :init
   (vertico-mode)
   :config
@@ -274,6 +301,7 @@
 
 ;; 2. The Search: Replaces Ivy fuzzy matching
 (use-package orderless
+  :demand t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
@@ -291,6 +319,7 @@
 
 ;; 4. Rich Meta-Information (Optional but highly recommended)
 (use-package marginalia
+  :demand t
   :init
   (marginalia-mode))
 
@@ -323,8 +352,7 @@
   :after embark)
 
 ;;;; GIT-GUTTER
-(use-package git-gutter
-  :commands git-gutter-mode)
+(use-package git-gutter)
 
 ;; (when (featurep 'git-gutter)
 ;;   (global-git-gutter-mode t))
@@ -337,7 +365,11 @@
          ("C-S-c C-S-c" . mc/edit-lines)))
 
 ;;;; SERVER
-(require 'rclient)
+
+;; This allows a remote client to "phone home" to a local
+;; emacs-server.  I haven't used this in many years.
+;;
+;;(require 'rclient)
 
 ;;;; UNIQUIFY
 (require 'uniquify)
@@ -347,6 +379,7 @@
 
 (windmove-default-keybindings 'meta)
 (use-package ace-window
+  :demand t
   :bind ("M-o" . ace-window)
   :custom
   ;; Jump to windows across all visible frames, replacing frame-tag.
@@ -441,15 +474,11 @@
 
 (when (memq window-system '(mac ns))
   (use-package exec-path-from-shell
+    :demand t
     :config (exec-path-from-shell-initialize)))
-
-(when (eq system-type 'darwin)
-  (use-package mac-pseudo-daemon
-    :pin melpa))
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 
 ;;;; LOCAL SETUP
 (load (expand-file-name "init-local.el" user-emacs-directory) 'noerror)
-
