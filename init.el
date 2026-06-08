@@ -286,7 +286,39 @@
 (use-package dts-mode)
 (use-package rainbow-delimiters)
 
+(use-package nerd-icons
+  :demand t
+  :custom
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+
 (require 'project)
+(use-package treemacs
+  :bind (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t 1"   . treemacs-delete-other-windows)
+        ("C-x t t"   . treemacs)
+        ("C-x t d"   . treemacs-select-directory)
+        ("C-x t B"   . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag)))
+
+(use-package treemacs-tab-bar
+  :after treemacs
+  :demand t
+  :config
+  (treemacs-set-scope-type 'Tabs))
+(use-package treemacs-nerd-icons
+  :after (treemacs nerd-icons)
+  :demand t
+  :config
+  (treemacs-nerd-icons-config))
+(use-package treemacs-magit
+  :after (treemacs magit)
+  :demand t)
+(use-package nerd-icons-dired
+  :after (nerd-icons)
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
 
 ;;;; VERTICO AND FRIENDS
 
@@ -462,6 +494,7 @@
     (when (display-graphic-p)
       (let ((font-name
              (cond
+              ((member "JetBrainsMono Nerd Font" (font-family-list)) "JetBrainsMono Nerd Font-12")
               ((member "JetBrains Mono" (font-family-list)) "JetBrains Mono-12")
               ((member "Menlo" (font-family-list)) "Menlo-12")
               ((member "Cascadia Code" (font-family-list)) "Cascadia Code-12")
