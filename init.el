@@ -102,9 +102,34 @@
 
 (use-package vscode-dark-plus-theme
   :demand t
-  :init (load-theme 'vscode-dark-plus t))
+  :config
+  (load-theme 'vscode-dark-plus t)
+  (with-eval-after-load 'tab-line
+    ;; Container strip background (Matches VS Code sidebar/empty areas)
+    (set-face-attribute 'tab-line nil
+                        :background "#1e1e1e"
+                        :foreground "#808080"
+                        :height 1.0)
 
-(tab-bar-mode)
+    ;; Active Tab (Matches VS Code active tab: Dark background, bright white text)
+    (set-face-attribute 'tab-line-tab-current nil
+                        :background "#1e1e1e"
+                        :foreground "#ffffff"
+                        :weight 'normal)
+
+    ;; Inactive Tabs (Matches VS Code inactive tab: Lighter background, dim text)
+    (set-face-attribute 'tab-line-tab-inactive nil
+                        :background "#2d2d2d"
+                        :foreground "#969696"
+                        :weight 'normal)
+
+    ;; Hover state (Subtle highlight when hovering over inactive tabs)
+    (set-face-attribute 'tab-line-highlight nil
+                        :background "#333333"
+                        :foreground "#ffffff"))
+)
+
+(global-tab-line-mode)
 (xterm-mouse-mode 1)
 (delete-selection-mode 1)
 (transient-mark-mode 1)
@@ -319,6 +344,19 @@
   :after (nerd-icons)
   :hook
   (dired-mode . nerd-icons-dired-mode))
+
+(use-package nerd-icons-completion
+  :after (vertico marginalia)
+  :demand t
+  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
+  :config
+  (nerd-icons-completion-mode))
+
+(use-package tab-line-nerd-icons
+  :after nerd-icons
+  :demand t
+  :config
+  (tab-line-nerd-icons-global-mode))
 
 ;;;; VERTICO AND FRIENDS
 
