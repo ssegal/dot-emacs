@@ -60,9 +60,6 @@
   ;; If we don't have use-package, then this is a first-time running
   ;; on an Emacs without use-package built-in.  In this case, we
   ;; should install it with package.el.
-  (setq package-enable-at-startup nil)
-  (package-initialize)
-  (package-refresh-contents)
   (package-install 'use-package)
 
   (eval-when-compile
@@ -73,10 +70,7 @@
 ;; with ":ensure nil"
 (setq use-package-always-ensure t)
 
-;; Defer by default, since most packages have good autoloads.
-(setq use-package-always-defer t)
-
-(use-package bind-key :demand t)
+(use-package bind-key)
 
 ;; Use ibuffer
 (bind-key "C-x C-b" 'ibuffer)
@@ -101,7 +95,6 @@
   :bind ("C-x C-r" . recentf-open-files))
 
 (use-package vscode-dark-plus-theme
-  :demand t
   :config
   (load-theme 'vscode-dark-plus t)
   (with-eval-after-load 'tab-line
@@ -159,7 +152,8 @@
 (use-package with-editor
   :hook ((shell-mode . with-editor-export-editor)
          (term-exec . with-editor-export-editor)
-         (eshell-mode . with-editor-export-editor)))
+         (eshell-mode . with-editor-export-editor)
+         (vterm-mode . with-editor-export-editor)))
 
 (use-package magit
   :defer t
@@ -175,7 +169,6 @@
            (treesit-available-p)
            (<= 15 (treesit-library-abi-version)))
   (use-package treesit-auto
-    :demand t
     :custom
     (treesit-auto-install 'prompt)
     :config
@@ -214,7 +207,6 @@
 
 (if (version< emacs-version "30.1")
     (use-package editorconfig
-      :demand t
       :init
       (editorconfig-mode))
   (editorconfig-mode))
@@ -232,38 +224,38 @@
           sh-mode bash-ts-mode) . eglot-ensure))
 
 (use-package rustic
+  :defer t
   :custom
   (rustic-lsp-client 'eglot))
 
 (if (version< emacs-version "30.1")
     (use-package which-key
-      :demand t
       :init
       (which-key-mode))
   (which-key-mode))
 
-(use-package go-mode)
+(use-package go-mode :defer t)
 (use-package go-dlv
   :after go-mode)
 
-(use-package yaml-mode)
-(use-package systemd)
+(use-package yaml-mode :defer t)
+(use-package systemd :defer t)
 
-(use-package docker)
-(use-package dockerfile-mode)
+(use-package docker :defer t)
+(use-package dockerfile-mode :defer t)
 (when (version< emacs-version "29.0")
   (use-package docker-tramp
     :after tramp))
-(use-package bitbake)
-(use-package bazel)
-(use-package cmake-mode)
-(use-package meson-mode)
-(use-package protobuf-mode)
-(use-package jinja2-mode)
-(use-package ssh-config-mode)
-(use-package terraform-mode)
-(use-package toml)
-(use-package typescript-mode)
+(use-package bitbake :defer t)
+(use-package bazel :defer t)
+(use-package cmake-mode :defer t)
+(use-package meson-mode :defer t)
+(use-package protobuf-mode :defer t)
+(use-package jinja2-mode :defer t)
+(use-package ssh-config-mode :defer t)
+(use-package terraform-mode :defer t)
+(use-package toml :defer t)
+(use-package typescript-mode :defer t)
 
 ;;;; TRAMP
 (use-package tramp
@@ -276,12 +268,18 @@
 (defun hostname (host)
   (car (split-string host "\\.")))
 
+;;;; TERMINAL
+(unless (eq system-type 'windows-nt)
+  (use-package vterm
+    :defer t)
+  (use-package multi-vterm
+    :defer t))
+
 ;;;; MARKDOWN
-(use-package markdown-mode)
+(use-package markdown-mode :defer t)
 
 ;; Corfu - modern completion UI that integrates with Vertico/Orderless
 (use-package corfu
-  :demand t
   :custom
   (corfu-auto t)
   (corfu-cycle t)
@@ -308,13 +306,8 @@
                             (display-line-numbers-mode 1)
                             (setq show-trailing-whitespace t)))
 
-(use-package dts-mode)
-(use-package rainbow-delimiters)
-
-(use-package nerd-icons
-  :demand t
-  :custom
-  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+(use-package dts-mode :defer t)
+(use-package rainbow-delimiters :defer t)
 
 (require 'project)
 (use-package treemacs
@@ -327,19 +320,20 @@
         ("C-x t C-t" . treemacs-find-file)
         ("C-x t M-t" . treemacs-find-tag)))
 
-(use-package treemacs-tab-bar
-  :after treemacs
-  :demand t
-  :config
-  (treemacs-set-scope-type 'Tabs))
+(use-package treemacs-magit
+  :after (treemacs magit))
+
+;;;; ICONS
+
+(use-package nerd-icons
+  :custom
+  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+
 (use-package treemacs-nerd-icons
   :after (treemacs nerd-icons)
-  :demand t
   :config
   (treemacs-nerd-icons-config))
-(use-package treemacs-magit
-  :after (treemacs magit)
-  :demand t)
+
 (use-package nerd-icons-dired
   :after (nerd-icons)
   :hook
@@ -347,14 +341,20 @@
 
 (use-package nerd-icons-completion
   :after (vertico marginalia)
-  :demand t
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :config
   (nerd-icons-completion-mode))
 
+(use-package nerd-icons-corfu
+  :after (corfu nerd-icons)
+  :config
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+(use-package nerd-icons-ibuffer
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
+
 (use-package tab-line-nerd-icons
   :after nerd-icons
-  :demand t
   :config
   (tab-line-nerd-icons-global-mode))
 
@@ -362,7 +362,6 @@
 
 ;; 1. The UI: Replaces Ivy core
 (use-package vertico
-  :demand t
   :init
   (vertico-mode)
   :config
@@ -371,7 +370,6 @@
 
 ;; 2. The Search: Replaces Ivy fuzzy matching
 (use-package orderless
-  :demand t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
@@ -389,7 +387,6 @@
 
 ;; 4. Rich Meta-Information (Optional but highly recommended)
 (use-package marginalia
-  :demand t
   :init
   (marginalia-mode))
 
@@ -413,7 +410,6 @@
 
 ;; Integrates Consult search buffers with Embark actions
 (use-package embark-consult
-  :ensure t
   :after (embark consult)
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
@@ -421,18 +417,31 @@
 (use-package embark-vc
   :after embark)
 
+(use-package popper
+  :demand t
+  :bind (("C-`" . popper-toggle)
+         ("M-`" . popper-cycle)
+         ("C-M-`" . popper-toggle-type))
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "\\*Warnings\\*"
+          "Output\\*$"
+          "\\*Async Shell Command\\*"
+          help-mode
+          compliation-mode
+          vterm-mode))
+  :config
+  (popper-mode +1)
+  (popper-echo-mode +1))
+
 ;;;; GIT-GUTTER
-(use-package git-gutter)
+(use-package git-gutter
+  :init
+  (global-git-gutter-mode))
 
 ;; (when (featurep 'git-gutter)
 ;;   (global-git-gutter-mode t))
-
-;;;; OTHER STUFF
-(use-package multiple-cursors
-  :bind (("C->" . mc/mark-next-like-this)
-         ("C-<" . mc/mark-previous-like-this)
-         ("C-c C-<" . mc/mark-all-like-this)
-         ("C-S-c C-S-c" . mc/edit-lines)))
 
 ;;;; SERVER
 
