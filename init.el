@@ -126,6 +126,7 @@
 (xterm-mouse-mode 1)
 (delete-selection-mode 1)
 (transient-mark-mode 1)
+(context-menu-mode 1)
 
 (use-package kkp
   :hook (tty-setup . global-kkp-mode))
@@ -311,6 +312,7 @@
 
 (require 'project)
 (use-package treemacs
+  :hook (project-switch-project . treemacs-add-and-display-current-project)
   :bind (:map global-map
         ("M-0"       . treemacs-select-window)
         ("C-x t 1"   . treemacs-delete-other-windows)
