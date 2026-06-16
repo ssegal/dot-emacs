@@ -312,7 +312,9 @@
 
 (require 'project)
 (use-package treemacs
-  :hook (project-switch-project . treemacs-add-and-display-current-project)
+  :config
+  (treemacs-follow-mode t)
+  (treemacs-project-follow-mode t)
   :bind (:map global-map
         ("M-0"       . treemacs-select-window)
         ("C-x t 1"   . treemacs-delete-other-windows)
@@ -337,12 +339,12 @@
   (treemacs-nerd-icons-config))
 
 (use-package nerd-icons-dired
-  :after (nerd-icons)
+  :after nerd-icons
   :hook
   (dired-mode . nerd-icons-dired-mode))
 
 (use-package nerd-icons-completion
-  :after (vertico marginalia)
+  :after (vertico marginalia nerd-icons)
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup)
   :config
   (nerd-icons-completion-mode))
@@ -353,6 +355,7 @@
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 (use-package nerd-icons-ibuffer
+  :after nerd-icons
   :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
 
 (use-package tab-line-nerd-icons
