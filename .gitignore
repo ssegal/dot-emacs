@@ -26,3 +26,4 @@ network-security.data
 /agent
 /.cache
 /projects
+/forge-database.sqlite
