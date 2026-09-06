@@ -161,12 +161,18 @@
   :init
   (require 'git-commit))
 
+(use-package git-modes
+  :defer t)
+
 ;;;; PROGRAMMING
 
 ;; treesit-auto will pull ABI 15 grammars.  Let's not even try to deal
 ;; with ABI 14.  For some reason this doesn't work in a use-package
-;; :if block, so we'll handle it outside.
-(when (and (fboundp 'treesit-available-p)
+;; :if block, so we'll handle it outside.  Also, treesit-auto is only
+;; useful for Emacs 30.1 and earlier, since its functionality is built
+;; into Emacs 31+.
+(when (and (version< emacs-version "31.1")
+           (fboundp 'treesit-available-p)
            (treesit-available-p)
            (<= 15 (treesit-library-abi-version)))
   (use-package treesit-auto
@@ -174,19 +180,11 @@
     (treesit-auto-install 'prompt)
     :config
     (treesit-auto-add-to-auto-mode-alist 'all)
-    (global-treesit-auto-mode))
+    (global-treesit-auto-mode)))
 
-  ;; Use git-commit-ts-mode for commit messages, but only once its
-  ;; tree-sitter grammar is actually available; otherwise git-commit
-  ;; falls back to its default major mode.
-  (use-package git-commit-ts-mode
-    :after (treesit-auto git-commit)
-    :init
-    (add-to-list 'treesit-language-source-alist
-                 '(gitcommit "https://github.com/gbprod/tree-sitter-gitcommit"))
-    :config
-    (when (treesit-ready-p 'gitcommit)
-      (setq git-commit-major-mode 'git-commit-ts-mode))))
+(when (and (fboundp 'treesit-available-p)
+           (treesit-available-p))
+  (use-package devicetree-ts-mode :defer t))
 
 ;; I hate tabs.
 (setq-default indent-tabs-mode nil)
@@ -307,7 +305,6 @@
                             (display-line-numbers-mode 1)
                             (setq show-trailing-whitespace t)))
 
-(use-package dts-mode :defer t)
 (use-package rainbow-delimiters :defer t)
 
 (require 'project)
@@ -445,15 +442,6 @@
   :init
   (global-git-gutter-mode))
 
-;; (when (featurep 'git-gutter)
-;;   (global-git-gutter-mode t))
-
-;;;; SERVER
-
-;; This allows a remote client to "phone home" to a local
-;; emacs-server.  I haven't used this in many years.
-;;
-;;(require 'rclient)
 
 ;;;; UNIQUIFY
 (require 'uniquify)
