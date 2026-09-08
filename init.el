@@ -154,7 +154,8 @@
   :hook ((shell-mode . with-editor-export-editor)
          (term-exec . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)
-         (vterm-mode . with-editor-export-editor)))
+         (vterm-mode . with-editor-export-editor)
+         (ghostel-mode . with-editor-export-editor)))
 
 (use-package magit
   :defer t
@@ -273,6 +274,30 @@
     :defer t)
   (use-package multi-vterm
     :defer t))
+
+(use-package ghostel
+  :defer t
+  :custom
+  (ghostel-bold-color 'bright)
+  (ghostel-enable-osc52 t)
+  (ghostel-module-auto-install 'download)
+  :config
+  (set-face-attribute 'ghostel-color-black nil :foreground "#000000")
+  (set-face-attribute 'ghostel-color-red nil :foreground "#cd3131")
+  (set-face-attribute 'ghostel-color-green nil :foreground "#0dbc79")
+  (set-face-attribute 'ghostel-color-yellow nil :foreground "#e5e510")
+  (set-face-attribute 'ghostel-color-blue nil :foreground "#2472c8")
+  (set-face-attribute 'ghostel-color-magenta nil :foreground "#bc3fbc")
+  (set-face-attribute 'ghostel-color-cyan nil :foreground "#11a8cd")
+  (set-face-attribute 'ghostel-color-white nil :foreground "#cccccc")
+  (set-face-attribute 'ghostel-color-bright-black nil :foreground "#666666")
+  (set-face-attribute 'ghostel-color-bright-red nil :foreground "#f14c4c")
+  (set-face-attribute 'ghostel-color-bright-green nil :foreground "#23d18b")
+  (set-face-attribute 'ghostel-color-bright-yellow nil :foreground "#f5f543")
+  (set-face-attribute 'ghostel-color-bright-blue nil :foreground "#3b8eea")
+  (set-face-attribute 'ghostel-color-bright-magenta nil :foreground "#d670d6")
+  (set-face-attribute 'ghostel-color-bright-cyan nil :foreground "#29b8db")
+  (set-face-attribute 'ghostel-color-bright-white nil :foreground "#ffffff"))
 
 ;;;; MARKDOWN
 (use-package markdown-mode :defer t)
