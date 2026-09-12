@@ -154,16 +154,51 @@
   :hook ((shell-mode . with-editor-export-editor)
          (term-exec . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)
-         (vterm-mode . with-editor-export-editor)
-         (ghostel-mode . with-editor-export-editor)))
+         (vterm-mode . with-editor-export-editor)))
 
 (use-package magit
   :defer t
   :init
   (require 'git-commit))
 
+(use-package magit-lfs
+  :after magit
+  :defer t)
+
+(use-package magit-gh
+  :after magit
+  :defer t)
+
 (use-package git-modes
   :defer t)
+
+(use-package consult-gh
+  :defer t
+  :after consult)
+
+(use-package consult-gh-embark
+  :defer t
+  :after consult-gh
+  :config
+  (consult-gh-embark-mode +1))
+
+(use-package consult-gh-forge
+  :defer t
+  :after consult-gh
+  :config
+  (consult-gh-forge-mode +1))
+
+(use-package consult-gh-nerd-icons
+  :defer t
+  :after (consult-gh nerd-icons)
+  :config
+  (consult-gh-nerd-icons-mode +1))
+
+(use-package consult-magit
+  :defer t
+  :after (consult magit)
+  :hook (magit-status-mode . consult-magit-record-repo)
+  :bind ("C-x C-g" . consult-magit))
 
 ;;;; PROGRAMMING
 
@@ -185,7 +220,20 @@
 
 (when (and (fboundp 'treesit-available-p)
            (treesit-available-p))
-  (use-package devicetree-ts-mode :defer t))
+  (use-package treesit
+    :defer t
+    :ensure nil
+    :custom
+    (treesit-auto-install-grammars 'ask)
+    (treesit-enabled-modes t))
+
+  (use-package devicetree-ts-mode
+    :after treesit
+    :defer t)
+
+  (use-package treesit-fold
+    :after treesit
+    :defer t))
 
 ;; I hate tabs.
 (setq-default indent-tabs-mode nil)
@@ -215,18 +263,28 @@
 ;; older versions (e.g. the Emacs 27.1 on Ubuntu 22.04) :ensure t pulls
 ;; it from GNU ELPA.  On 29+ this just installs a possibly-newer ELPA
 ;; copy, which is harmless.
-;; Language servers needed: clangd, gopls, pylsp, yaml-language-server, bash-language-server
 (use-package eglot
   :hook ((python-mode python-ts-mode
           go-mode go-ts-mode
-          c-mode c-ts-mode c++-mode c++-ts-mode
+          c-mode c-ts-mode
+          c++-mode c++-ts-mode
           yaml-mode yaml-ts-mode
+          typescript-mode typescript-ts-mode
+          js-mode js-ts-mode
+          json-mode json-ts-mode
+          dockerfile-mode dockerfile-ts-mode
+          html-mode html-ts-mode
+          mhtml-mode mhtml-ts-mode
+          cmake-mode cmake-ts-mode
+          css-mode css-ts-mode
+          bitbake-mode
+          markdown-mode markdown-ts-mode
+          nxml-mode
+          rust-mode rust-ts-mode
+          toml-mode toml-ts-mode
           sh-mode bash-ts-mode) . eglot-ensure))
 
-(use-package rustic
-  :defer t
-  :custom
-  (rustic-lsp-client 'eglot))
+(use-package rust-mode)
 
 (if (version< emacs-version "30.1")
     (use-package which-key
@@ -277,6 +335,7 @@
 
 (use-package ghostel
   :defer t
+  :bind (("C-c t" . ghostel))
   :custom
   (ghostel-bold-color 'bright)
   (ghostel-enable-osc52 t)
@@ -298,6 +357,21 @@
   (set-face-attribute 'ghostel-color-bright-magenta nil :foreground "#d670d6")
   (set-face-attribute 'ghostel-color-bright-cyan nil :foreground "#29b8db")
   (set-face-attribute 'ghostel-color-bright-white nil :foreground "#ffffff"))
+
+(use-package ghostel-eshell
+  :after ghostel
+  :ensure nil
+  :hook (eshell-mode . ghostel-eshell-visual-command-mode))
+
+(use-package ghostel-compile
+  :after ghostel
+  :ensure nil
+  :hook (after-init . ghostel-compile-global-mode))
+
+(use-package ghostel-comint
+  :after ghostel
+  :ensure nil
+  :hook (after-init . ghostel-comint-global-mode))
 
 ;;;; MARKDOWN
 (use-package markdown-mode :defer t)
@@ -353,7 +427,9 @@
 
 (use-package nerd-icons
   :custom
-  (nerd-icons-font-family "Symbols Nerd Font Mono"))
+  (nerd-icons-font-family "Symbols Nerd Font Mono")
+  :config
+  (add-to-list 'nerd-icons-mode-icon-alist '(ghostel-mode nerd-icons-devicon "nf-dev-terminal")))
 
 (use-package treemacs-nerd-icons
   :after (treemacs nerd-icons)
