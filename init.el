@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t; -*-
 
-(when (version< emacs-version "27.1")
-  (error "Emacs version 27.1 or later required"))
+(when (version< emacs-version "29.1")
+  (error "Emacs version 29.1 or later required"))
 
 ;; Prefer newer files.  This is first so that it affects all
 ;; subsequent loads.
@@ -172,27 +172,28 @@
 (use-package git-modes
   :defer t)
 
-(use-package consult-gh
-  :defer t
-  :after consult)
+(when (version<= "29.4" emacs-version)
+  (use-package consult-gh
+    :defer t
+    :after consult)
 
-(use-package consult-gh-embark
-  :defer t
-  :after consult-gh
-  :config
-  (consult-gh-embark-mode +1))
+  (use-package consult-gh-embark
+    :defer t
+    :after consult-gh
+    :config
+    (consult-gh-embark-mode +1))
 
-(use-package consult-gh-forge
-  :defer t
-  :after consult-gh
-  :config
-  (consult-gh-forge-mode +1))
+  (use-package consult-gh-forge
+    :defer t
+    :after consult-gh
+    :config
+    (consult-gh-forge-mode +1))
 
-(use-package consult-gh-nerd-icons
-  :defer t
-  :after (consult-gh nerd-icons)
-  :config
-  (consult-gh-nerd-icons-mode +1))
+  (use-package consult-gh-nerd-icons
+    :defer t
+    :after (consult-gh nerd-icons)
+    :config
+    (consult-gh-nerd-icons-mode +1)))
 
 (use-package consult-magit
   :defer t
@@ -259,11 +260,8 @@
       (editorconfig-mode))
   (editorconfig-mode))
 
-;; Use eglot for LSP support.  eglot is built-in for Emacs 29+; on
-;; older versions (e.g. the Emacs 27.1 on Ubuntu 22.04) :ensure t pulls
-;; it from GNU ELPA.  On 29+ this just installs a possibly-newer ELPA
-;; copy, which is harmless.
 (use-package eglot
+  :pin gnu
   :hook ((python-mode python-ts-mode
           go-mode go-ts-mode
           c-mode c-ts-mode
@@ -301,11 +299,9 @@
 
 (use-package docker :defer t)
 (use-package dockerfile-mode :defer t)
-(when (version< emacs-version "29.0")
-  (use-package docker-tramp
-    :after tramp))
 (use-package bitbake :defer t)
-(use-package bazel :defer t)
+(when (version<= "30.1" emacs-version)
+  (use-package bazel :defer t))
 (use-package cmake-mode :defer t)
 (use-package meson-mode :defer t)
 (use-package protobuf-mode :defer t)
@@ -327,12 +323,6 @@
   (car (split-string host "\\.")))
 
 ;;;; TERMINAL
-(unless (eq system-type 'windows-nt)
-  (use-package vterm
-    :defer t)
-  (use-package multi-vterm
-    :defer t))
-
 (use-package ghostel
   :defer t
   :bind (("C-c t" . ghostel))
@@ -559,10 +549,8 @@
   (aw-scope 'visible))
 
 ;;;; MISC
-(if (version<= "28.0" emacs-version)
-    (setopt use-short-answers t)
-  (fset 'yes-or-no-p 'y-or-n-p))
 
+(setopt use-short-answers t)
 (winner-mode 1)
 (size-indication-mode 1)
 (tool-bar-mode 0)
@@ -571,10 +559,7 @@
 (show-paren-mode 1)
 (column-number-mode 1)
 (setq inhibit-startup-screen t)
-
-(if (version<= "29.0" emacs-version)
-    (pixel-scroll-precision-mode 1)
-  (pixel-scroll-mode 1))
+(pixel-scroll-precision-mode 1)
 
 ;; Since I use widescreen monitors everywhere, prefer
 ;; horizontal split to vertical split.
