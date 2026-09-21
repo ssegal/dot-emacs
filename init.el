@@ -356,12 +356,14 @@
 (use-package ghostel-compile
   :after ghostel
   :ensure nil
-  :hook (after-init . ghostel-compile-global-mode))
+  :init
+  (ghostel-compile-global-mode))
 
 (use-package ghostel-comint
   :after ghostel
   :ensure nil
-  :hook (after-init . ghostel-comint-global-mode))
+  :init
+  (ghostel-comint-global-mode))
 
 ;;;; MARKDOWN
 (use-package markdown-mode :defer t)
@@ -370,15 +372,16 @@
 (use-package corfu
   :custom
   (corfu-auto t)
-  (corfu-cycle t)
   :init
-  (global-corfu-mode))
+  (global-corfu-mode)
+  (corfu-mouse-mode)
+  (corfu-popupinfo-mode)
+  :config
+  (keymap-unset corfu-map "RET"))
 
-;; Corfu's popup uses child frames, which don't exist in a TTY.
-;; corfu-terminal renders the popup with overlays instead.  Since this
-;; is a (pseudo-)daemon setup that mixes GUI and TTY frames, decide
-;; per-frame rather than once at startup.  This package won't be
-;; necessary in Emacs 31.
+;; Corfu's popup uses child frames, which didn't work in terminal
+;; frames before Emacs 31.  So for older Emacsen, use corfu-terminal
+;; to provide a terminal-friendly popup instead.
 (when (version< emacs-version "31.0")
   (use-package corfu-terminal
     :after corfu
