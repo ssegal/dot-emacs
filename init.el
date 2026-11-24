@@ -52,9 +52,10 @@
         ("nongnu" . "https://elpa.nongnu.org/nongnu/")
         ("melpa" . "https://melpa.org/packages/"))
       package-archive-priorities
-      '(("melpa" . 10)
-        ("gnu" . 5)
-        ("nongnu" . 5)))
+      '(("gnu" . 99)
+        ("nongnu" . 80)
+        ("melpa" . 50)))
+
 
 (unless (fboundp 'use-package)
   ;; If we don't have use-package, then this is a first-time running
@@ -128,8 +129,10 @@
 (transient-mark-mode 1)
 (context-menu-mode 1)
 
-(use-package kkp
-  :hook (tty-setup . global-kkp-mode))
+;;; kkp support is built-in for Emacs 32
+(when (version< emacs-version "32.0")
+  (use-package kkp
+    :hook (tty-setup . global-kkp-mode)))
 
 (use-package rg
   :bind (("C-c s" . rg-menu))
@@ -200,6 +203,14 @@
   :after (consult magit)
   :hook (magit-status-mode . consult-magit-record-repo)
   :bind ("C-x C-g" . consult-magit))
+
+(use-package consult-ghostel
+  :hook (after-init . consult-ghostel-mode)
+  :bind (("C-c t" . consult-ghostel)
+         :map project-prefix-map
+         ("m" . consult-ghostel-project)
+         :map ghostel-semi-char-mode-map
+         ("C-c h" . consult-ghostel-history)))
 
 ;;;; PROGRAMMING
 
@@ -325,7 +336,6 @@
 ;;;; TERMINAL
 (use-package ghostel
   :defer t
-  :bind (("C-c t" . ghostel))
   :custom
   (ghostel-bold-color 'bright)
   (ghostel-enable-osc52 t)
@@ -366,7 +376,11 @@
   (ghostel-comint-global-mode))
 
 ;;;; MARKDOWN
-(use-package markdown-mode :defer t)
+(use-package markdown-ts-mode
+  :ensure nil
+  :mode ("\\.md\\'" "\\.mdx'" "\\.markdown\\'")
+  :config
+  (require 'markdown-mode-x))
 
 ;; Corfu - modern completion UI that integrates with Vertico/Orderless
 (use-package corfu
@@ -571,31 +585,6 @@
 
 (setq hexl-bits 8)
 
-(defun toggle-window-split ()
-  (interactive)
-  (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-	     (next-win-buffer (window-buffer (next-window)))
-	     (this-win-edges (window-edges (selected-window)))
-	     (next-win-edges (window-edges (next-window)))
-	     (this-win-2nd (not (and (<= (car this-win-edges)
-					 (car next-win-edges))
-				     (<= (cadr this-win-edges)
-					 (cadr next-win-edges)))))
-	     (splitter
-	      (if (= (car this-win-edges)
-		     (car (window-edges (next-window))))
-		  'split-window-horizontally
-		'split-window-vertically)))
-	(delete-other-windows)
-	(let ((first-win (selected-window)))
-	  (funcall splitter)
-	  (if this-win-2nd (other-window 1))
-	  (set-window-buffer (selected-window) this-win-buffer)
-	  (set-window-buffer (next-window) next-win-buffer)
-	  (select-window first-win)
-	  (if this-win-2nd (other-window 1))))))
-
 (defun close-and-kill-next-pane ()
   "If there are multiple windows, then close the other pane and kill the buffer in it also."
   (interactive)
@@ -604,7 +593,7 @@
   (if (not (one-window-p))
       (delete-window)))
 
-(bind-key "C-x /" 'toggle-window-split)
+;(bind-key "C-x /" 'window-layout-transpose)
 (bind-key "C-c x" 'close-and-kill-next-pane)
 
 ;;;; SYSTEM-SPECIFIC SETUP
@@ -633,11 +622,6 @@
 
 (add-hook 'after-init-hook (lambda () (my/set-preferred-font (selected-frame))))
 (add-hook 'after-make-frame-functions #'my/set-preferred-font)
-
-(when (memq window-system '(mac ns))
-  (use-package exec-path-from-shell
-    :demand t
-    :config (exec-path-from-shell-initialize)))
 
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
