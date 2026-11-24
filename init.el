@@ -50,7 +50,7 @@
 (setq package-archives
       '(("gnu" . "https://elpa.gnu.org/packages/")
         ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-        ("melpa" . "https://melpa.org/packages/"))
+        ("melpa" . "https://snapshots.melpa.org/packages/"))
       package-archive-priorities
       '(("gnu" . 99)
         ("nongnu" . 80)
@@ -310,7 +310,11 @@
 
 (use-package docker :defer t)
 (use-package dockerfile-mode :defer t)
-(use-package bitbake :defer t)
+(use-package polymode :defer t)
+(use-package bitbake
+  :defer t
+  :vc (:url "https://github.com/danielcmccarthy/bitbake-el.git" :rev :newest)
+  :requires polymode)
 (when (version<= "30.1" emacs-version)
   (use-package bazel :defer t))
 (use-package cmake-mode :defer t)

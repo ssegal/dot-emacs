@@ -27,3 +27,4 @@ network-security.data
 /.cache
 /projects
 /forge-database.sqlite
+/projects.eld
