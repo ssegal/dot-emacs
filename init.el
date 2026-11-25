@@ -95,39 +95,35 @@
   (recentf-mode 1)
   :bind ("C-x C-r" . recentf-open-files))
 
-(use-package vscode-dark-plus-theme
+(use-package doom-themes
+  :ensure t
+  :custom
+  (doom-dark+-blue-modeline t)
+  (doom-themes-treemacs-theme "doom-colors")
+  (doom-modeline-indent-info t)
   :config
-  (load-theme 'vscode-dark-plus t)
-  (with-eval-after-load 'tab-line
-    ;; Container strip background (Matches VS Code sidebar/empty areas)
-    (set-face-attribute 'tab-line nil
-                        :background "#1e1e1e"
-                        :foreground "#808080"
-                        :height 1.0)
+  (load-theme 'doom-dark+ t)
+  (doom-themes-treemacs-config)
+  (doom-themes-visual-bell-config))
 
-    ;; Active Tab (Matches VS Code active tab: Dark background, bright white text)
-    (set-face-attribute 'tab-line-tab-current nil
-                        :background "#1e1e1e"
-                        :foreground "#ffffff"
-                        :weight 'normal)
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
 
-    ;; Inactive Tabs (Matches VS Code inactive tab: Lighter background, dim text)
-    (set-face-attribute 'tab-line-tab-inactive nil
-                        :background "#2d2d2d"
-                        :foreground "#969696"
-                        :weight 'normal)
-
-    ;; Hover state (Subtle highlight when hovering over inactive tabs)
-    (set-face-attribute 'tab-line-highlight nil
-                        :background "#333333"
-                        :foreground "#ffffff"))
-)
-
-(global-tab-line-mode)
+(global-tab-line-mode 1)
 (xterm-mouse-mode 1)
 (delete-selection-mode 1)
 (transient-mark-mode 1)
 (context-menu-mode 1)
+(global-hl-line-mode)
+
+;; Use block cursor for overwrite-mode
+(setq-default cursor-type 'bar)
+(unless (version< emacs-version "31.1")
+  (setq xterm-update-cursor t))
+(add-hook 'overwrite-mode-hook
+          (lambda ()
+            (setq cursor-type (if overwrite-mode 'box 'bar))))
 
 ;;; kkp support is built-in for Emacs 32
 (when (version< emacs-version "32.0")
@@ -157,7 +153,9 @@
   :hook ((shell-mode . with-editor-export-editor)
          (term-exec . with-editor-export-editor)
          (eshell-mode . with-editor-export-editor)
-         (vterm-mode . with-editor-export-editor)))
+         (ghostel-pre-spawn . with-editor-export-editor))
+  :init
+  (shell-command-with-editor-mode 1))
 
 (use-package magit
   :defer t
@@ -175,7 +173,7 @@
 (use-package git-modes
   :defer t)
 
-(when (version<= "29.4" emacs-version)
+(unless (version< emacs-version "29.4")
   (use-package consult-gh
     :defer t
     :after consult)
@@ -200,9 +198,9 @@
 
 (use-package consult-magit
   :defer t
-  :after (consult magit)
   :hook (magit-status-mode . consult-magit-record-repo)
-  :bind ("C-x C-g" . consult-magit))
+  :init
+  (bind-key "C-x C-g" 'consult-magit))
 
 (use-package consult-ghostel
   :hook (after-init . consult-ghostel-mode)
@@ -265,10 +263,8 @@
 
 (setq c-default-style (quote ((java-mode . "java") (awk-mode . "awk") (other . "meraki"))))
 
-(if (version< emacs-version "30.1")
-    (use-package editorconfig
-      :init
-      (editorconfig-mode))
+(use-package editorconfig
+  :init
   (editorconfig-mode))
 
 (use-package eglot
@@ -292,13 +288,10 @@
           rust-mode rust-ts-mode
           toml-mode toml-ts-mode
           sh-mode bash-ts-mode) . eglot-ensure))
-
 (use-package rust-mode)
 
-(if (version< emacs-version "30.1")
-    (use-package which-key
-      :init
-      (which-key-mode))
+(use-package which-key
+  :init
   (which-key-mode))
 
 (use-package go-mode :defer t)
@@ -311,11 +304,13 @@
 (use-package docker :defer t)
 (use-package dockerfile-mode :defer t)
 (use-package polymode :defer t)
+;; bitbake from MELPA isn't working because it depends on a polymode
+;; version from the old MELPA repo.  Workaround is to pull it from vc
+;; and include polymode explicitly.
 (use-package bitbake
   :defer t
-  :vc (:url "https://github.com/danielcmccarthy/bitbake-el.git" :rev :newest)
-  :requires polymode)
-(when (version<= "30.1" emacs-version)
+  :vc (:url "https://github.com/danielcmccarthy/bitbake-el.git" :rev :newest))
+(unless (version< emacs-version "30.1")
   (use-package bazel :defer t))
 (use-package cmake-mode :defer t)
 (use-package meson-mode :defer t)
@@ -549,11 +544,13 @@
   (popper-mode +1)
   (popper-echo-mode +1))
 
-;;;; GIT-GUTTER
-(use-package git-gutter
+(use-package diff-hl
+  :ensure t
+  :hook (magit-post-refresh . diff-hl-magit-post-refresh)
   :init
-  (global-git-gutter-mode))
-
+  (global-diff-hl-mode 1)
+  :config
+  (diff-hl-flydiff-mode 1))
 
 ;;;; UNIQUIFY
 (require 'uniquify)
