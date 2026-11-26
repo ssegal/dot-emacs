@@ -116,6 +116,7 @@
 (transient-mark-mode 1)
 (context-menu-mode 1)
 (global-hl-line-mode)
+(setq delete-selection-save-to-register nil)
 
 ;; Use block cursor for overwrite-mode
 (setq-default cursor-type 'bar)
@@ -435,6 +436,10 @@
   :custom
   (nerd-icons-font-family "Symbols Nerd Font Mono")
   :config
+  ;; Don't try to italicize icons
+  (dolist (face (face-list))
+    (when (string-prefix-p "nerd-icons-" (symbol-name face))
+      (set-face-attribute face nil :slant 'normal)))
   (add-to-list 'nerd-icons-mode-icon-alist '(ghostel-mode nerd-icons-devicon "nf-dev-terminal")))
 
 (use-package treemacs-nerd-icons
